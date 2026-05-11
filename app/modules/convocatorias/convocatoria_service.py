@@ -23,10 +23,9 @@ class ConvocatoriaService:
         return items, total
 
     def create(self, data: ConvocatoriaCreateDTO):
-        if data.estado != "BORRADOR" and (data.inicio_olimpiadas is None or data.fin_olimpiadas is None):
-            raise BusinessRuleError("Las fechas de olimpiadas son obligatorias")
-
-        convocatoria = ConvocatoriaModel(**data.model_dump())
+        convocatoria_data = data.model_dump()
+        convocatoria_data["estado"] = "BORRADOR"
+        convocatoria = ConvocatoriaModel(**convocatoria_data)
         return self.repository.create(convocatoria)
 
     def update(self, convocatoria_id: int, data: ConvocatoriaUpdateDTO):

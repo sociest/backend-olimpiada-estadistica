@@ -5,3 +5,7 @@ pydantic
 pydantic-settings
 psycopg2-binary
 passlib[bcrypt]
+python-multipart
+supabase
+bcrypt<4
+passlib[bcrypt]

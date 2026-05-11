@@ -1,7 +1,22 @@
 /.ai
 /.ai/*
 /base-datos.sql
+/database
+/database/*
 
 .env
 
 dev.ps1
+
+# --- IDEs (Opcional pero recomendado) ---
+.vscode/
+
+# --- PYTHON ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+build/
+dist/

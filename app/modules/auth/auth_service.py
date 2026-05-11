@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.exceptions import AuthenticationError, ConflictError, UnauthorizedError
+from app.core.exceptions import AuthenticationError, ConflictError, UnauthorizedError, ValidationError
 from app.core.security import create_access_token, hash_password, verify_password
 from app.modules.auth.auth_model import AdministradorModel
 from app.modules.auth.auth_repository import AuthRepository
@@ -36,6 +36,9 @@ class AuthService:
         if has_admins and current_admin_id is None:
             raise UnauthorizedError("No autorizado")
 
+        if len(data.contrasena) < 8:
+            raise ValidationError("La contrasena debe tener al menos 8 caracteres")
+
         existing_admin = self.repository.get_admin_by_correo(data.correo)
         if existing_admin:
             raise ConflictError("El correo ya esta registrado")
@@ -55,3 +58,11 @@ class AuthService:
             )
 
         return created_admin
+
+    def logout(self, admin_id: int):
+        self.repository.create_auditoria(
+            admin_id=admin_id,
+            accion="LOGOUT",
+            descripcion="Logout exitoso",
+        )
+        return {"logout": True}

@@ -5,16 +5,20 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
+
     container_name: fastapi-dev
+
     ports:
       - "8000:8000"
+
     volumes:
-      - .:/app  # 🔥 clave para desarrollo (hot reload)
+      - .:/app
+
     environment:
       - ENV=development
+
     restart: always
 
-    # Opcional: si usas base de datos
     depends_on:
       - db
 
@@ -28,7 +32,10 @@ services:
       POSTGRES_PASSWORD: 123456
       POSTGRES_DB: olimpiadas_bd_v2
     volumes:
+      # Persistencia de postgres
       - postgres_data:/var/lib/postgresql/data
 
+      # Scripts SQL automáticos
+      - ./database:/docker-entrypoint-initdb.d
 volumes:
   postgres_data:

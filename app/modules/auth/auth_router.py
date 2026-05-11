@@ -2,13 +2,19 @@ from fastapi import APIRouter, Depends
 from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import bearer_scheme
+from app.core.dependencies import bearer_scheme, get_current_admin
 from app.core.exceptions import UnauthorizedError
 from app.core.responses import ResponseBase
 from app.core.security import decode_access_token
 from app.db.database import get_db
 from app.modules.auth.auth_repository import AuthRepository
-from app.modules.auth.auth_schema import AdminCreateDTO, LoginDTO, TokenDataDTO, UsuarioAutenticadoDTO
+from app.modules.auth.auth_schema import (
+    AdminCreateDTO,
+    LoginDTO,
+    LogoutResponseDTO,
+    TokenDataDTO,
+    UsuarioAutenticadoDTO,
+)
 from app.modules.auth.auth_service import AuthService
 
 
@@ -32,6 +38,13 @@ def registrar_admin(
     service = AuthService(db)
     admin = service.create_admin(data, current_admin_id=current_admin_id)
     return ResponseBase(data=admin, message="Administrador registrado correctamente")
+
+
+@router.post("/logout", response_model=ResponseBase[LogoutResponseDTO])
+def logout(db: Session = Depends(get_db), admin_id: int = Depends(get_current_admin)):
+    service = AuthService(db)
+    result = service.logout(admin_id)
+    return ResponseBase(data=result, message="Logout exitoso")
 
 
 def _get_optional_current_admin_id(

@@ -17,8 +17,15 @@ class ConvocatoriaBaseDTO(BaseModel):
     estado: str
 
 
-class ConvocatoriaCreateDTO(ConvocatoriaBaseDTO):
-    pass
+class ConvocatoriaCreateDTO(BaseModel):
+    nombre_convocatoria: str
+    gestion: int
+    descripcion: Optional[str] = None
+    inicio_olimpiadas: Optional[date] = None
+    fin_olimpiadas: Optional[date] = None
+    fecha_inicio_inscripcion: Optional[datetime] = None
+    fecha_fin_inscripcion: Optional[datetime] = None
+    monto_inscripcion: Optional[float] = None
 
 
 class ConvocatoriaUpdateDTO(BaseModel):

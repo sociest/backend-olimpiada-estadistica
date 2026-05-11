@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     secret_key: str
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 1440
+    supabase_url: str = ""
+    supabase_service_role_key: str = ""
+    supabase_bucket_materiales: str = "materialse"
     port: int = 8000
 
     model_config = SettingsConfigDict(env_file=".env", extra="allow")

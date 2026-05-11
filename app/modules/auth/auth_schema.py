@@ -25,3 +25,7 @@ class TokenDataDTO(BaseModel):
     token_type: str = "Bearer"
     expires_in: int
     usuario: UsuarioAutenticadoDTO
+
+
+class LogoutResponseDTO(BaseModel):
+    logout: bool
