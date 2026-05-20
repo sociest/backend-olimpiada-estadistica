@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
 
+from datetime import datetime
+
 from app.core.exceptions import BusinessRuleError, NotFoundError
 from app.modules.convocatorias.convocatoria_model import ConvocatoriaModel
 from app.modules.convocatorias.convocatoria_repository import ConvocatoriaRepository
@@ -55,3 +57,19 @@ class ConvocatoriaService:
         if not convocatoria:
             raise NotFoundError("No hay convocatorias disponibles")
         return convocatoria
+
+    def publish(self, convocatoria_id: int):
+        convocatoria = self.get_by_id(convocatoria_id)
+        if convocatoria.estado != "BORRADOR":
+            raise BusinessRuleError("Solo se puede publicar una convocatoria en borrador")
+
+        if convocatoria.fecha_inicio_inscripcion is None or convocatoria.fecha_fin_inscripcion is None:
+            raise BusinessRuleError("Fechas de inscripcion obligatorias")
+
+        now = datetime.now()
+        if convocatoria.fecha_inicio_inscripcion <= now <= convocatoria.fecha_fin_inscripcion:
+            convocatoria.estado = "INSCRIPCION EN CURSO"
+        else:
+            convocatoria.estado = "PROXIMA"
+
+        return self.repository.update(convocatoria)

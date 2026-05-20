@@ -6,11 +6,13 @@ from app.core.supabase_storage import SupabaseStorageClient
 from app.modules.auth.auth_repository import AuthRepository
 from app.modules.materiales.material_model import MaterialModel
 from app.modules.materiales.material_repository import MaterialRepository
+from datetime import datetime
+
 from app.modules.materiales.material_schema import MaterialCreateDTO, MaterialUpdateDTO
 
 
 class MaterialService:
-    PRINCIPAL_TIPOS = {"AFICHE", "CONVOCATORIA", "REGLAMENTO"}
+    IMPORTANCIA_TIPOS = {"AFICHE", "CONVOCATORIA", "REGLAMENTO"}
 
     def __init__(self, db: Session):
         self.repository = MaterialRepository(db)
@@ -65,7 +67,7 @@ class MaterialService:
             material.descripcion = self._normalize_descripcion(material.descripcion)
         if "fecha_publicacion" in updates:
             material.visibilidad = self._resolve_visibilidad(material.fecha_publicacion)
-        if "tipo_material" in updates and material.tipo_material in self.PRINCIPAL_TIPOS:
+        if "tipo_material" in updates and material.tipo_material == "PRINCIPAL":
             raise BusinessRuleError("Tipo de material no permitido en este endpoint")
 
         if archivo is not None:
@@ -156,15 +158,17 @@ class MaterialService:
         archivo: UploadFile,
         current_admin_id: int,
     ):
-        if importancia_tipo not in self.PRINCIPAL_TIPOS:
+        if importancia_tipo not in self.IMPORTANCIA_TIPOS:
             raise BusinessRuleError("Tipo principal no permitido")
-        self._validate_relations(convocatoria_id, None, None)
+        convocatoria = self.repository.get_convocatoria(convocatoria_id)
+        if not convocatoria:
+            raise BusinessRuleError("La convocatoria no existe")
         existing = self.repository.get_convocatoria_material_by_tipo(convocatoria_id, importancia_tipo)
         data = MaterialCreateDTO(
-            nombre_material=data.nombre_material,
-            descripcion=data.descripcion,
-            tipo_material=importancia_tipo,
-            fecha_publicacion=data.fecha_publicacion,
+            nombre_material=f"{convocatoria.gestion}_{importancia_tipo}_{convocatoria_id}",
+            descripcion=None,
+            tipo_material="PRINCIPAL",
+            fecha_publicacion=datetime.now(),
             id_convocatoria=convocatoria_id,
         )
         material = await self._create_material(data, archivo, current_admin_id, allow_principal=True)
@@ -174,6 +178,39 @@ class MaterialService:
             self.repository.update(existing)
             self.repository.update_importancia_tipo(convocatoria_id, existing.id_material, "OTRO")
         self.repository.update_importancia_tipo(convocatoria_id, material.id_material, importancia_tipo)
+        return material
+
+    def asignar_material_principal(self, convocatoria_id: int, material_id: int, importancia_tipo: str, current_admin_id: int):
+        if importancia_tipo not in self.IMPORTANCIA_TIPOS:
+            raise BusinessRuleError("Tipo principal no permitido")
+
+        convocatoria = self.repository.get_convocatoria(convocatoria_id)
+        if not convocatoria:
+            raise BusinessRuleError("La convocatoria no existe")
+
+        material = self.get_by_id(material_id)
+        if material.tipo_material != "PRINCIPAL":
+            raise BusinessRuleError("Tipo de material no coincide con el tipo principal")
+
+        existing = self.repository.get_convocatoria_material_by_tipo(convocatoria_id, importancia_tipo)
+        if existing is not None:
+            existing.visibilidad = "PRIVADO"
+            existing.tipo_material = "OTRO"
+            self.repository.update(existing)
+            self.repository.update_importancia_tipo(convocatoria_id, existing.id_material, "OTRO")
+
+        material.nombre_material = f"{convocatoria.gestion}_{importancia_tipo}_{convocatoria_id}"
+        material.descripcion = None
+        material.fecha_publicacion = datetime.now()
+        material.visibilidad = "PUBLICO"
+        self.repository.update(material)
+        self.repository.set_relacion_convocatoria(convocatoria_id, material_id, importancia_tipo)
+
+        self.auth_repository.create_auditoria(
+            admin_id=current_admin_id,
+            accion="ASIGNAR_MATERIAL_PRINCIPAL",
+            descripcion=f"Material principal asignado: {material.nombre_material}",
+        )
         return material
 
     def get_material_principal(self, convocatoria_id: int, importancia_tipo: str):
@@ -233,6 +270,11 @@ class MaterialService:
         total = self.repository.count_public_by_fase(fase_id)
         return items, total
 
+    def get_principales_public(self, importancia_tipo: str | None = None):
+        if importancia_tipo and importancia_tipo not in self.IMPORTANCIA_TIPOS:
+            raise BusinessRuleError("Tipo de importancia no valido")
+        return self.repository.get_principales_public(importancia_tipo)
+
     async def _create_material(
         self,
         data: MaterialCreateDTO,
@@ -240,7 +282,7 @@ class MaterialService:
         current_admin_id: int,
         allow_principal: bool,
     ):
-        if not allow_principal and data.tipo_material in self.PRINCIPAL_TIPOS:
+        if not allow_principal and data.tipo_material == "PRINCIPAL":
             raise BusinessRuleError("Tipo de material no permitido en este endpoint")
 
         self._validate_relations(data.id_convocatoria, data.id_categoria, data.id_fase)

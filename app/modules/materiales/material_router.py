@@ -37,6 +37,16 @@ def listar_materiales_admin(
     return PaginatedResponse(data=data, message="Lista obtenida correctamente")
 
 
+@router.get("/principales", response_model=ResponseBase[list[MaterialResponseDTO]])
+def listar_materiales_principales(
+    importancia_tipo: str | None = None,
+    db: Session = Depends(get_db),
+):
+    service = MaterialService(db)
+    materiales = service.get_principales_public(importancia_tipo)
+    return ResponseBase(data=materiales, message="Operacion exitosa")
+
+
 @router.get("/{material_id}", response_model=ResponseBase[MaterialResponseDTO])
 def obtener_material(material_id: int, db: Session = Depends(get_db)):
     service = MaterialService(db)
@@ -140,40 +150,38 @@ async def crear_material_fase(
 @router.get("/convocatorias/{convocatoria_id}/afiche", response_model=ResponseBase[MaterialResponseDTO])
 def obtener_afiche(convocatoria_id: int, db: Session = Depends(get_db)):
     service = MaterialService(db)
-    material = service.get_material_principal(convocatoria_id, "AFICHE")
+    material = service.get_material_principal_public(convocatoria_id, "AFICHE")
     return ResponseBase(data=material, message="Operacion exitosa")
 
 
 @router.get("/convocatorias/{convocatoria_id}/convocatoria", response_model=ResponseBase[MaterialResponseDTO])
 def obtener_convocatoria(convocatoria_id: int, db: Session = Depends(get_db)):
     service = MaterialService(db)
-    material = service.get_material_principal(convocatoria_id, "CONVOCATORIA")
+    material = service.get_material_principal_public(convocatoria_id, "CONVOCATORIA")
     return ResponseBase(data=material, message="Operacion exitosa")
 
 
 @router.get("/convocatorias/{convocatoria_id}/reglamento", response_model=ResponseBase[MaterialResponseDTO])
 def obtener_reglamento(convocatoria_id: int, db: Session = Depends(get_db)):
     service = MaterialService(db)
-    material = service.get_material_principal(convocatoria_id, "REGLAMENTO")
+    material = service.get_material_principal_public(convocatoria_id, "REGLAMENTO")
     return ResponseBase(data=material, message="Operacion exitosa")
+
+
 
 
 @router.post("/convocatorias/{convocatoria_id}/afiche", response_model=ResponseBase[MaterialResponseDTO])
 async def crear_afiche(
     convocatoria_id: int,
-    nombre_material: str = Form(...),
-    tipo_material: str = Form(...),
-    descripcion: Optional[str] = Form(None),
-    fecha_publicacion: Optional[datetime] = Form(None),
     archivo: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_admin_id: int = Depends(get_current_admin),
 ):
     data = MaterialCreateDTO(
-        nombre_material=nombre_material,
-        descripcion=descripcion,
-        tipo_material=tipo_material,
-        fecha_publicacion=fecha_publicacion,
+        nombre_material="",
+        descripcion=None,
+        tipo_material="AFICHE",
+        fecha_publicacion=None,
     )
     service = MaterialService(db)
     material = await service.create_material_principal(
@@ -189,19 +197,15 @@ async def crear_afiche(
 @router.post("/convocatorias/{convocatoria_id}/convocatoria", response_model=ResponseBase[MaterialResponseDTO])
 async def crear_convocatoria_principal(
     convocatoria_id: int,
-    nombre_material: str = Form(...),
-    tipo_material: str = Form(...),
-    descripcion: Optional[str] = Form(None),
-    fecha_publicacion: Optional[datetime] = Form(None),
     archivo: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_admin_id: int = Depends(get_current_admin),
 ):
     data = MaterialCreateDTO(
-        nombre_material=nombre_material,
-        descripcion=descripcion,
-        tipo_material=tipo_material,
-        fecha_publicacion=fecha_publicacion,
+        nombre_material="",
+        descripcion=None,
+        tipo_material="CONVOCATORIA",
+        fecha_publicacion=None,
     )
     service = MaterialService(db)
     material = await service.create_material_principal(
@@ -217,19 +221,15 @@ async def crear_convocatoria_principal(
 @router.post("/convocatorias/{convocatoria_id}/reglamento", response_model=ResponseBase[MaterialResponseDTO])
 async def crear_reglamento(
     convocatoria_id: int,
-    nombre_material: str = Form(...),
-    tipo_material: str = Form(...),
-    descripcion: Optional[str] = Form(None),
-    fecha_publicacion: Optional[datetime] = Form(None),
     archivo: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_admin_id: int = Depends(get_current_admin),
 ):
     data = MaterialCreateDTO(
-        nombre_material=nombre_material,
-        descripcion=descripcion,
-        tipo_material=tipo_material,
-        fecha_publicacion=fecha_publicacion,
+        nombre_material="",
+        descripcion=None,
+        tipo_material="REGLAMENTO",
+        fecha_publicacion=None,
     )
     service = MaterialService(db)
     material = await service.create_material_principal(
@@ -245,19 +245,15 @@ async def crear_reglamento(
 @router.put("/convocatorias/{convocatoria_id}/afiche", response_model=ResponseBase[MaterialResponseDTO])
 async def actualizar_afiche(
     convocatoria_id: int,
-    nombre_material: str = Form(...),
-    tipo_material: str = Form(...),
-    descripcion: Optional[str] = Form(None),
-    fecha_publicacion: Optional[datetime] = Form(None),
     archivo: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_admin_id: int = Depends(get_current_admin),
 ):
     data = MaterialCreateDTO(
-        nombre_material=nombre_material,
-        descripcion=descripcion,
-        tipo_material=tipo_material,
-        fecha_publicacion=fecha_publicacion,
+        nombre_material="",
+        descripcion=None,
+        tipo_material="AFICHE",
+        fecha_publicacion=None,
     )
     service = MaterialService(db)
     material = await service.create_material_principal(
@@ -273,19 +269,15 @@ async def actualizar_afiche(
 @router.put("/convocatorias/{convocatoria_id}/convocatoria", response_model=ResponseBase[MaterialResponseDTO])
 async def actualizar_convocatoria_principal(
     convocatoria_id: int,
-    nombre_material: str = Form(...),
-    tipo_material: str = Form(...),
-    descripcion: Optional[str] = Form(None),
-    fecha_publicacion: Optional[datetime] = Form(None),
     archivo: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_admin_id: int = Depends(get_current_admin),
 ):
     data = MaterialCreateDTO(
-        nombre_material=nombre_material,
-        descripcion=descripcion,
-        tipo_material=tipo_material,
-        fecha_publicacion=fecha_publicacion,
+        nombre_material="",
+        descripcion=None,
+        tipo_material="CONVOCATORIA",
+        fecha_publicacion=None,
     )
     service = MaterialService(db)
     material = await service.create_material_principal(
@@ -301,19 +293,15 @@ async def actualizar_convocatoria_principal(
 @router.put("/convocatorias/{convocatoria_id}/reglamento", response_model=ResponseBase[MaterialResponseDTO])
 async def actualizar_reglamento(
     convocatoria_id: int,
-    nombre_material: str = Form(...),
-    tipo_material: str = Form(...),
-    descripcion: Optional[str] = Form(None),
-    fecha_publicacion: Optional[datetime] = Form(None),
     archivo: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_admin_id: int = Depends(get_current_admin),
 ):
     data = MaterialCreateDTO(
-        nombre_material=nombre_material,
-        descripcion=descripcion,
-        tipo_material=tipo_material,
-        fecha_publicacion=fecha_publicacion,
+        nombre_material="",
+        descripcion=None,
+        tipo_material="REGLAMENTO",
+        fecha_publicacion=None,
     )
     service = MaterialService(db)
     material = await service.create_material_principal(
@@ -356,6 +344,42 @@ def eliminar_reglamento(
 ):
     service = MaterialService(db)
     material = service.delete_material_principal(convocatoria_id, "REGLAMENTO", current_admin_id)
+    return ResponseBase(data=material, message="Operacion exitosa")
+
+
+@router.post("/convocatorias/{convocatoria_id}/afiche/asignar", response_model=ResponseBase[MaterialResponseDTO])
+def asignar_afiche(
+    convocatoria_id: int,
+    material_id: int,
+    db: Session = Depends(get_db),
+    current_admin_id: int = Depends(get_current_admin),
+):
+    service = MaterialService(db)
+    material = service.asignar_material_principal(convocatoria_id, material_id, "AFICHE", current_admin_id)
+    return ResponseBase(data=material, message="Operacion exitosa")
+
+
+@router.post("/convocatorias/{convocatoria_id}/convocatoria/asignar", response_model=ResponseBase[MaterialResponseDTO])
+def asignar_convocatoria_principal(
+    convocatoria_id: int,
+    material_id: int,
+    db: Session = Depends(get_db),
+    current_admin_id: int = Depends(get_current_admin),
+):
+    service = MaterialService(db)
+    material = service.asignar_material_principal(convocatoria_id, material_id, "CONVOCATORIA", current_admin_id)
+    return ResponseBase(data=material, message="Operacion exitosa")
+
+
+@router.post("/convocatorias/{convocatoria_id}/reglamento/asignar", response_model=ResponseBase[MaterialResponseDTO])
+def asignar_reglamento(
+    convocatoria_id: int,
+    material_id: int,
+    db: Session = Depends(get_db),
+    current_admin_id: int = Depends(get_current_admin),
+):
+    service = MaterialService(db)
+    material = service.asignar_material_principal(convocatoria_id, material_id, "REGLAMENTO", current_admin_id)
     return ResponseBase(data=material, message="Operacion exitosa")
 
 

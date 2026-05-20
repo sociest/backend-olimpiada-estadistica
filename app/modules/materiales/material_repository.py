@@ -141,6 +141,22 @@ class MaterialRepository:
             .first()
         )
 
+    def get_principales_public(self, importancia_tipo: str | None = None):
+        query = (
+            self.db.query(MaterialModel)
+            .join(material_convocatoria, material_convocatoria.c.id_material == MaterialModel.id_material)
+            .filter(MaterialModel.visibilidad == "PUBLICO")
+            .filter(MaterialModel.fecha_publicacion.isnot(None))
+            .filter(MaterialModel.fecha_publicacion <= datetime.now())
+        )
+        if importancia_tipo:
+            query = query.filter(material_convocatoria.c.importancia_tipo == importancia_tipo)
+        else:
+            query = query.filter(
+                material_convocatoria.c.importancia_tipo.in_(["AFICHE", "CONVOCATORIA", "REGLAMENTO"])
+            )
+        return query.all()
+
     def create(self, material: MaterialModel):
         self.db.add(material)
         self.db.commit()
@@ -158,6 +174,13 @@ class MaterialRepository:
 
     def convocatoria_exists(self, convocatoria_id: int):
         return self.db.query(ConvocatoriaModel).filter(ConvocatoriaModel.id_convocatoria == convocatoria_id).first() is not None
+
+    def get_convocatoria(self, convocatoria_id: int):
+        return (
+            self.db.query(ConvocatoriaModel)
+            .filter(ConvocatoriaModel.id_convocatoria == convocatoria_id)
+            .first()
+        )
 
     def categoria_exists(self, categoria_id: int):
         return self.db.query(CategoriaModel).filter(CategoriaModel.id_categoria == categoria_id).first() is not None
@@ -206,5 +229,20 @@ class MaterialRepository:
             .where(material_convocatoria.c.id_convocatoria == convocatoria_id)
             .where(material_convocatoria.c.id_material == material_id)
             .values(importancia_tipo=importancia_tipo)
+        )
+        self.db.commit()
+
+    def set_relacion_convocatoria(self, convocatoria_id: int, material_id: int, importancia_tipo: str):
+        self.db.execute(
+            delete(material_convocatoria)
+            .where(material_convocatoria.c.id_convocatoria == convocatoria_id)
+            .where(material_convocatoria.c.id_material == material_id)
+        )
+        self.db.execute(
+            insert(material_convocatoria).values(
+                id_convocatoria=convocatoria_id,
+                id_material=material_id,
+                importancia_tipo=importancia_tipo,
+            )
         )
         self.db.commit()

@@ -54,6 +54,13 @@ def actualizar_convocatoria(
     return ResponseBase(data=convocatoria, message="Operacion exitosa")
 
 
+@router.post("/{convocatoria_id}/publicar", response_model=ResponseBase[ConvocatoriaResponseDTO])
+def publicar_convocatoria(convocatoria_id: int, db: Session = Depends(get_db)):
+    service = ConvocatoriaService(db)
+    convocatoria = service.publish(convocatoria_id)
+    return ResponseBase(data=convocatoria, message="Operacion exitosa")
+
+
 @router.delete("/{convocatoria_id}", response_model=ResponseBase[ConvocatoriaResponseDTO])
 def eliminar_convocatoria(
     convocatoria_id: int,
