@@ -102,11 +102,11 @@ class PublicBffService:
         materiales = materiales_data[0]
         return {
             "convocatoria": convocatoria,
-            "categorias": categorias or [],
-            "materiales": materiales or [],
-            "afiche": afiche,
-            "convocatoria_documento": convocatoria_doc,
-            "reglamento": reglamento,
+            "categorias": self._format_categorias_detalle(categorias or []),
+            "materiales": self._format_materiales_simples(materiales or []),
+            "afiche": self._format_material_principal_detalle(afiche),
+            "convocatoria_documento": self._format_material_principal_detalle(convocatoria_doc),
+            "reglamento": self._format_material_principal_detalle(reglamento),
         }
 
     async def get_fases_por_categoria(self, categoria_id: int):
@@ -116,7 +116,7 @@ class PublicBffService:
             )
         except Exception:
             return []
-        return items or []
+        return self._format_materiales_simples(items or [])
 
     async def get_materiales_por_fase(self, fase_id: int):
         try:
@@ -166,11 +166,40 @@ class PublicBffService:
     def _format_categorias_inicio(self, convocatoria, categorias):
         return [
             {
-                "nombre_convocatoria": convocatoria.nombre_convocatoria,
+                "nombre_categoria": categoria["nombre_categoria"] if isinstance(categoria, dict) else categoria.nombre_categoria,
                 "nivel": categoria["nivel"] if isinstance(categoria, dict) else categoria.nivel,
                 "curso": categoria["curso"] if isinstance(categoria, dict) else categoria.curso,
             }
             for categoria in categorias
+        ]
+
+    def _format_categorias_detalle(self, categorias):
+        return [
+            {
+                "nombre_categoria": categoria["nombre_categoria"] if isinstance(categoria, dict) else categoria.nombre_categoria,
+                "nivel": categoria["nivel"] if isinstance(categoria, dict) else categoria.nivel,
+                "curso": categoria["curso"] if isinstance(categoria, dict) else categoria.curso,
+            }
+            for categoria in categorias
+        ]
+
+    def _format_material_principal_detalle(self, material):
+        if material is None:
+            return None
+        return {
+            "enlace_acceso": material.enlace_acceso,
+            "nombre_material": material.nombre_material,
+            "descripcion": material.descripcion,
+        }
+
+    def _format_materiales_simples(self, materiales):
+        return [
+            {
+                "enlace_acceso": material.enlace_acceso,
+                "nombre_material": material.nombre_material,
+                "descripcion": material.descripcion,
+            }
+            for material in materiales
         ]
 
     def _format_avisos(self, avisos):

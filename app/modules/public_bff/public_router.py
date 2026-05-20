@@ -8,10 +8,9 @@ from app.modules.categorias.categoria_service import CategoriaService
 from app.modules.convocatorias.convocatoria_service import ConvocatoriaService
 from app.modules.fases.fase_schema import FaseResponseDTO
 from app.modules.fases.fase_service import FaseService
-from app.modules.materiales.material_schema import MaterialResponseDTO
 from app.modules.materiales.material_service import MaterialService
 from app.modules.personas.persona_service import PersonaService
-from app.modules.public_bff.public_schema import ConvocatoriaDetalleDTO, InicioResponseDTO
+from app.modules.public_bff.public_schema import ConvocatoriaDetalleDTO, InicioResponseDTO, MaterialPublicoSimpleDTO
 from app.modules.public_bff.public_service import PublicBffService
 
 
@@ -63,7 +62,7 @@ async def obtener_fases_por_categoria(
     return ResponseBase(data=items, message="Lista obtenida correctamente")
 
 
-@router.get("/fases/{fase_id}/materiales", response_model=ResponseBase[list[MaterialResponseDTO]])
+@router.get("/fases/{fase_id}/materiales", response_model=ResponseBase[list[MaterialPublicoSimpleDTO]])
 async def obtener_materiales_por_fase(
     fase_id: int,
     db: Session = Depends(get_db),

@@ -3,13 +3,18 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from app.modules.avisos.aviso_schema import AvisoResponseDTO
 from app.modules.convocatorias.convocatoria_schema import ConvocatoriaResponseDTO
 from app.modules.materiales.material_schema import MaterialResponseDTO
 
 
-class CategoriaResumenDTO(BaseModel):
-    nombre_convocatoria: str
+class CategoriaInicioDTO(BaseModel):
+    nombre_categoria: str
+    nivel: str
+    curso: int
+
+
+class CategoriaDetalleDTO(BaseModel):
+    nombre_categoria: str
     nivel: str
     curso: int
 
@@ -17,6 +22,18 @@ class CategoriaResumenDTO(BaseModel):
 class MaterialPrincipalDTO(BaseModel):
     enlace_acceso: Optional[str] = None
     mensaje: Optional[str] = None
+
+
+class MaterialPrincipalDetalleDTO(BaseModel):
+    enlace_acceso: Optional[str] = None
+    nombre_material: Optional[str] = None
+    descripcion: Optional[str] = None
+
+
+class MaterialPublicoSimpleDTO(BaseModel):
+    enlace_acceso: str
+    nombre_material: str
+    descripcion: Optional[str] = None
 
 
 class AvisoInicioDTO(BaseModel):
@@ -29,14 +46,14 @@ class AvisoInicioDTO(BaseModel):
 class InicioResponseDTO(BaseModel):
     convocatoria: Optional[ConvocatoriaResponseDTO] = None
     material_principal: MaterialPrincipalDTO
-    categorias: List[CategoriaResumenDTO]
+    categorias: List[CategoriaInicioDTO]
     avisos: List[AvisoInicioDTO]
 
 
 class ConvocatoriaDetalleDTO(BaseModel):
     convocatoria: Optional[ConvocatoriaResponseDTO] = None
-    categorias: List[CategoriaResumenDTO]
-    materiales: List[MaterialResponseDTO]
-    afiche: Optional[MaterialResponseDTO] = None
-    convocatoria_documento: Optional[MaterialResponseDTO] = None
-    reglamento: Optional[MaterialResponseDTO] = None
+    categorias: List[CategoriaDetalleDTO]
+    materiales: List[MaterialPublicoSimpleDTO]
+    afiche: Optional[MaterialPrincipalDetalleDTO] = None
+    convocatoria_documento: Optional[MaterialPrincipalDetalleDTO] = None
+    reglamento: Optional[MaterialPrincipalDetalleDTO] = None
