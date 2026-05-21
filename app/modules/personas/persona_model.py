@@ -30,6 +30,7 @@ class DirectorModel(Base):
     __tablename__ = "director"
 
     id_director = Column(Integer, ForeignKey("persona.id_persona"), primary_key=True)
+    id_colegio = Column(Integer, ForeignKey("colegio.id_colegio"), nullable=True, index=True)
     telefono_1 = Column(String(50), nullable=False)
     telefono_2 = Column(String(50), nullable=True)
 

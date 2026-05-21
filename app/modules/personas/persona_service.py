@@ -53,6 +53,7 @@ class PersonaService:
                 "nombres": persona.nombres,
                 "paterno": persona.paterno,
                 "materno": persona.materno,
+                "id_colegio": director.id_colegio,
                 "telefono_1": director.telefono_1,
                 "telefono_2": director.telefono_2,
             }
@@ -90,6 +91,7 @@ class PersonaService:
                     "nombres": persona.nombres,
                     "paterno": persona.paterno,
                     "materno": persona.materno,
+                    "id_colegio": director.id_colegio,
                     "telefono_1": director.telefono_1,
                     "telefono_2": director.telefono_2,
                 }
@@ -152,6 +154,7 @@ class PersonaService:
             self.repository.create_persona(persona)
             director = DirectorModel(
                 id_director=persona.id_persona,
+                id_colegio=data.id_colegio,
                 telefono_1=data.telefono_1,
                 telefono_2=data.telefono_2,
             )
@@ -162,6 +165,7 @@ class PersonaService:
             "nombres": persona.nombres,
             "paterno": persona.paterno,
             "materno": persona.materno,
+            "id_colegio": director.id_colegio,
             "telefono_1": director.telefono_1,
             "telefono_2": director.telefono_2,
         }
