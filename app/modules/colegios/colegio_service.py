@@ -130,3 +130,6 @@ class ColegioService:
             "insertados": insertados,
             "errores": errores
         }
+    
+    def get_all_minified(self):
+        return self.repository.get_all_minified()

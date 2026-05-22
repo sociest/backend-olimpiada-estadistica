@@ -83,3 +83,8 @@ class ConvocatoriaDetalleDTO(BaseModel):
     afiche: Optional[MaterialPrincipalDetalleDTO] = None
     convocatoria_documento: Optional[MaterialPrincipalDetalleDTO] = None
     reglamento: Optional[MaterialPrincipalDetalleDTO] = None
+
+class ColegioPublicoSimpleDTO(BaseModel):
+    id_colegio: int
+    nombre: str
+    municipio: str

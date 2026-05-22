@@ -6,6 +6,7 @@ from app.modules.convocatorias.convocatoria_service import ConvocatoriaService
 from app.modules.fases.fase_service import FaseService
 from app.modules.materiales.material_service import MaterialService
 from app.modules.personas.persona_service import PersonaService
+from app.modules.colegios.colegio_service import ColegioService
 
 
 class PublicBffService:
@@ -17,6 +18,7 @@ class PublicBffService:
         material_service: MaterialService,
         fase_service: FaseService,
         persona_service: PersonaService,
+        colegio_service: ColegioService,
     ):
         self.convocatoria_service = convocatoria_service
         self.categoria_service = categoria_service
@@ -24,6 +26,7 @@ class PublicBffService:
         self.material_service = material_service
         self.fase_service = fase_service
         self.persona_service = persona_service
+        self.colegio_service = colegio_service
 
     async def get_inicio(self):
         convocatoria = await asyncio.to_thread(self._safe_get_convocatoria)
@@ -245,4 +248,19 @@ class PublicBffService:
                 "fecha_publicacion": aviso.fecha_publicacion.date() if aviso.fecha_publicacion else None,
             }
             for aviso in avisos
+        ]
+    
+    async def get_colegios_minified(self):
+        try:
+            items = await asyncio.to_thread(self.colegio_service.get_all_minified)
+        except Exception:
+            return []
+
+        return [
+            {
+                "id_colegio": item.id_colegio,
+                "nombre": item.nombre,
+                "municipio": item.municipio
+            }
+            for item in items or []
         ]

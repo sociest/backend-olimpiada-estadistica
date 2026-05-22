@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+import time
+from fastapi.responses import JSONResponse
+
 from app.core.responses import PaginatedData, PaginatedResponse, PaginationMeta, ResponseBase
 from app.db.database import get_db
 from app.modules.avisos.aviso_service import AvisoService
@@ -15,8 +18,10 @@ from app.modules.public_bff.public_schema import (
     FasePruebaPublicaDTO,
     InicioResponseDTO,
     MaterialPublicoSimpleDTO,
+    ColegioPublicoSimpleDTO,
 )
 from app.modules.public_bff.public_service import PublicBffService
+from app.modules.colegios.colegio_service import ColegioService
 
 
 router = APIRouter(prefix="/public", tags=["public"])
@@ -30,6 +35,7 @@ def _get_service(db: Session) -> PublicBffService:
         material_service=MaterialService(db),
         fase_service=FaseService(db),
         persona_service=PersonaService(db),
+        colegio_service=ColegioService(db),
     )
 
 
@@ -78,3 +84,26 @@ async def obtener_materiales_por_fase(
     service = _get_service(db)
     items = await service.get_materiales_por_fase(fase_id)
     return ResponseBase(data=items, message="Lista obtenida correctamente")
+
+# @router.get("/colegios", response_model=ResponseBase[list[ColegioPublicoSimpleDTO]])
+# async def obtener_colegios(db: Session = Depends(get_db)):
+#     service = _get_service(db)
+#     items = await service.get_colegios_minified()
+#     return ResponseBase(data=items, message="Lista de colegios obtenida correctamente")
+
+@router.get("/colegios")
+async def obtener_colegios(db: Session = Depends(get_db)):
+    t0 = time.time()
+    
+    service = _get_service(db)
+    items = await service.get_colegios_minified()
+    
+    t1 = time.time()
+    print(f"⏱️ Tiempo de Base de Datos y Servicio: {t1 - t0} segundos")
+    
+    # Retornamos JSON directo, saltando la validación profunda de Pydantic
+    return JSONResponse(content={
+        "status": "success",
+        "data": items,
+        "message": "Lista de colegios obtenida correctamente"
+    })

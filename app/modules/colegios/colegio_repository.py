@@ -43,3 +43,6 @@ class ColegioRepository:
         
     def flush(self):
         self.db.flush()
+
+    def get_all_minified(self):
+        return self.db.query(ColegioModel.id_colegio, ColegioModel.nombre, ColegioModel.municipio).all()
