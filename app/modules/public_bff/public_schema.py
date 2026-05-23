@@ -8,12 +8,14 @@ from app.modules.materiales.material_schema import MaterialResponseDTO
 
 
 class CategoriaInicioDTO(BaseModel):
+    id_categoria: int
     nombre_categoria: str
     nivel: str
     curso: int
 
 
 class CategoriaDetalleDTO(BaseModel):
+    id_categoria: int
     nombre_categoria: str
     nivel: str
     curso: int

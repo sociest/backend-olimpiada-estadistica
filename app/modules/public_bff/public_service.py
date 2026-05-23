@@ -173,6 +173,7 @@ class PublicBffService:
                 "nombre_categoria": categoria["nombre_categoria"] if isinstance(categoria, dict) else categoria.nombre_categoria,
                 "nivel": categoria["nivel"] if isinstance(categoria, dict) else categoria.nivel,
                 "curso": categoria["curso"] if isinstance(categoria, dict) else categoria.curso,
+                "id_categoria": categoria["id_categoria"] if isinstance(categoria, dict) else categoria.id_categoria,
             }
             for categoria in categorias
         ]
@@ -180,6 +181,7 @@ class PublicBffService:
     def _format_categorias_detalle(self, categorias):
         return [
             {
+                "id_categoria": categoria["id_categoria"] if isinstance(categoria, dict) else categoria.id_categoria,
                 "nombre_categoria": categoria["nombre_categoria"] if isinstance(categoria, dict) else categoria.nombre_categoria,
                 "nivel": categoria["nivel"] if isinstance(categoria, dict) else categoria.nivel,
                 "curso": categoria["curso"] if isinstance(categoria, dict) else categoria.curso,
