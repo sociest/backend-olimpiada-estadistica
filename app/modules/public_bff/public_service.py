@@ -260,7 +260,8 @@ class PublicBffService:
             {
                 "id_colegio": item.id_colegio,
                 "nombre": item.nombre,
-                "municipio": item.municipio
+                "municipio": item.municipio,
+                "turno": item.turno
             }
             for item in items or []
         ]

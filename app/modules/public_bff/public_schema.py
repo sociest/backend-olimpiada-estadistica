@@ -88,3 +88,4 @@ class ColegioPublicoSimpleDTO(BaseModel):
     id_colegio: int
     nombre: str
     municipio: str
+    turno: str

@@ -92,16 +92,9 @@ async def obtener_materiales_por_fase(
 #     return ResponseBase(data=items, message="Lista de colegios obtenida correctamente")
 
 @router.get("/colegios")
-async def obtener_colegios(db: Session = Depends(get_db)):
-    t0 = time.time()
-    
+async def obtener_colegios(db: Session = Depends(get_db)): 
     service = _get_service(db)
     items = await service.get_colegios_minified()
-    
-    t1 = time.time()
-    print(f"⏱️ Tiempo de Base de Datos y Servicio: {t1 - t0} segundos")
-    
-    # Retornamos JSON directo, saltando la validación profunda de Pydantic
     return JSONResponse(content={
         "status": "success",
         "data": items,
