@@ -15,18 +15,25 @@ class EstudianteFormularioDTO(BaseModel):
     telefono: Optional[int] = None
     correo: Optional[str] = None
 
-
 class InscripcionFormularioDTO(BaseModel):
     id_convocatoria: int
     id_categoria: int
     estudiante: EstudianteFormularioDTO
     id_colegio: int
 
+# DTO de Petición con campos de seguridad
+class InscripcionFormularioRequestDTO(InscripcionFormularioDTO):
+    username_hp: str = ""
+    cf_turnstile_response: str = ""
 
 class EstudianteBuscarDTO(BaseModel):
     carnet_identidad: str
     fecha_nacimiento: date
 
+# DTO de Petición con campos de seguridad
+class EstudianteBuscarRequestDTO(EstudianteBuscarDTO):
+    username_hp: str = ""
+    cf_turnstile_response: str = ""
 
 class EstudianteBusquedaResponseDTO(BaseModel):
     id_estudiante: int
@@ -51,7 +58,6 @@ class InscripcionResponseDTO(BaseModel):
     estado: str
 
     model_config = ConfigDict(from_attributes=True)
-
 
 class InscripcionFormularioResponseDTO(BaseModel):
     inscripcion: InscripcionResponseDTO

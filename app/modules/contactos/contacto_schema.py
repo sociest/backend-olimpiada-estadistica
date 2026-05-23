@@ -1,7 +1,5 @@
 from datetime import datetime
-
 from pydantic import BaseModel, ConfigDict
-
 
 class ContactoCreateDTO(BaseModel):
     nombre_completo: str
@@ -9,10 +7,12 @@ class ContactoCreateDTO(BaseModel):
     asunto: str
     mensaje: str
 
+class ContactoRequestDTO(ContactoCreateDTO):
+    username_hp: str = ""
+    cf_turnstile_response: str = ""
 
 class ContactoUpdateDTO(BaseModel):
     estado: str
-
 
 class ContactoResponseDTO(BaseModel):
     id_contacto: int

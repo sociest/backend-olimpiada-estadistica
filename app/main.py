@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
+from app.core.dependencies import limiter
 from app.core.exceptions import register_exception_handlers
 from app.modules.auth.auth_router import router as auth_router
 from app.modules.avisos.aviso_router import router as aviso_router
@@ -15,8 +18,9 @@ from app.modules.materiales.material_router import router as material_router
 from app.modules.personas.persona_router import router as persona_router
 from app.modules.public_bff.public_router import router as public_router
 
-
 app = FastAPI()
+app.state.limiter = limiter
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
@@ -24,6 +28,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 register_exception_handlers(app)
 
 app.include_router(auth_router)

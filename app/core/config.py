@@ -1,6 +1,4 @@
-from pydantic_settings import BaseSettings
-from pydantic_settings import SettingsConfigDict
-
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     database_url: str = ""
@@ -17,6 +15,7 @@ class Settings(BaseSettings):
     supabase_service_role_key: str = ""
     supabase_bucket_materiales: str = "materiales"
     port: int = 8000
+    cloudflare_secret_key: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
 
@@ -27,6 +26,5 @@ class Settings(BaseSettings):
             f"postgresql://{self.db_user}:{self.db_password}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
         )
-
 
 settings = Settings()
