@@ -3,17 +3,6 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
-
-class ColegioNuevoDTO(BaseModel):
-    codigo: int
-    nombre: str
-    tipo: str
-    turno: str
-    departamento: str
-    municipio: str
-    calle: Optional[str] = None
-
-
 class EstudianteFormularioDTO(BaseModel):
     nombres: str
     paterno: str
@@ -31,9 +20,27 @@ class InscripcionFormularioDTO(BaseModel):
     id_convocatoria: int
     id_categoria: int
     estudiante: EstudianteFormularioDTO
-    id_colegio: Optional[int] = None
-    colegio_nuevo: Optional[ColegioNuevoDTO] = None
+    id_colegio: int
 
+
+class EstudianteBuscarDTO(BaseModel):
+    carnet_identidad: str
+    fecha_nacimiento: date
+
+
+class EstudianteBusquedaResponseDTO(BaseModel):
+    id_estudiante: int
+    nombres: str
+    paterno: str
+    materno: Optional[str] = None
+    carnet_identidad: str
+    fecha_nacimiento: date
+    curso: Optional[int] = None
+    nivel: Optional[str] = None
+    rude: Optional[str] = None
+    telefono: Optional[int] = None
+    correo: Optional[str] = None
+    id_colegio: Optional[int] = None
 
 class InscripcionResponseDTO(BaseModel):
     id_inscripcion: int

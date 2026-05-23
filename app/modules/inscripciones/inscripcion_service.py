@@ -7,7 +7,7 @@ from app.modules.inscripciones.inscripcion_model import InscripcionModel
 from app.modules.inscripciones.inscripcion_repository import InscripcionRepository
 from app.modules.inscripciones.inscripcion_schema import InscripcionFormularioDTO
 from app.modules.personas.persona_model import EstudianteModel, PersonaModel
-
+from datetime import date
 
 class InscripcionService:
     def __init__(self, db: Session):
@@ -30,7 +30,7 @@ class InscripcionService:
             if categoria.id_convocatoria != data.id_convocatoria:
                 raise BusinessRuleError("La categoria no pertenece a la convocatoria")
 
-            colegio = self._obtener_o_crear_colegio(data)
+            colegio = self._obtener_colegio(data)
             estudiante, persona = self._obtener_o_crear_estudiante(data, colegio.id_colegio)
 
             existente = self.repository.get_inscripcion_existente(estudiante.id_estudiante, data.id_convocatoria)
@@ -68,25 +68,12 @@ class InscripcionService:
             self.db.rollback()
             raise
 
-    def _obtener_o_crear_colegio(self, data: InscripcionFormularioDTO):
-        if data.id_colegio is not None and data.colegio_nuevo is not None:
-            raise BusinessRuleError("Use id_colegio o colegio_nuevo, no ambos")
-
-        if data.id_colegio is not None:
-            colegio = self.repository.get_colegio(data.id_colegio)
-            if not colegio:
-                raise NotFoundError("Colegio no encontrado")
-            return colegio
-
-        if data.colegio_nuevo is None:
-            raise BusinessRuleError("Debe indicar colegio")
-
-        existente = self.repository.get_colegio_by_codigo(data.colegio_nuevo.codigo)
-        if existente:
-            return existente
-
-        colegio = ColegioModel(**data.colegio_nuevo.model_dump(), estado="PENDIENTE")
-        return self.repository.create_colegio(colegio)
+    def _obtener_colegio(self, data: InscripcionFormularioDTO):
+        # Ahora solo busca el colegio por ID, si no existe lanza error
+        colegio = self.repository.get_colegio(data.id_colegio)
+        if not colegio:
+            raise NotFoundError("Colegio no encontrado")
+        return colegio
 
     def _obtener_o_crear_estudiante(self, data: InscripcionFormularioDTO, colegio_id: int):
         estudiante_data = data.estudiante
@@ -145,13 +132,16 @@ class InscripcionService:
 
     def _colegio_response(self, colegio):
         return {
-            "id_colegio": colegio.id_colegio,
-            "codigo": colegio.codigo,
             "nombre": colegio.nombre,
             "tipo": colegio.tipo,
             "turno": colegio.turno,
-            "departamento": colegio.departamento,
-            "municipio": colegio.municipio,
             "calle": colegio.calle,
-            "estado": colegio.estado,
         }
+
+    def buscar_estudiante_registro(self, carnet_identidad: str, fecha_nacimiento: date):
+        row = self.repository.get_estudiante_by_ci_fecha(carnet_identidad, fecha_nacimiento)
+        if not row:
+            raise NotFoundError("Estudiante no encontrado o datos de verificación incorrectos")
+        
+        estudiante, persona = row
+        return self._estudiante_response(estudiante, persona)

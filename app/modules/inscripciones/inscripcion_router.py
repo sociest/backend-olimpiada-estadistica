@@ -8,6 +8,8 @@ from app.modules.inscripciones.inscripcion_schema import (
     InscripcionFormularioDTO,
     InscripcionFormularioResponseDTO,
     InscripcionResponseDTO,
+    EstudianteBuscarDTO,
+    EstudianteBusquedaResponseDTO,
 )
 from app.modules.inscripciones.inscripcion_service import InscripcionService
 
@@ -34,3 +36,9 @@ def listar_inscripciones(
     meta = PaginationMeta(page=page, limit=limit, total=total, total_pages=(total + limit - 1) // limit)
     data = PaginatedData(items=items, meta=meta)
     return PaginatedResponse(data=data, message="Lista obtenida correctamente")
+
+@router.post("/verificar-estudiante", response_model=ResponseBase[EstudianteBusquedaResponseDTO])
+def verificar_estudiante_existente(data: EstudianteBuscarDTO, db: Session = Depends(get_db)):
+    service = InscripcionService(db)
+    resultado = service.buscar_estudiante_registro(data.carnet_identidad, data.fecha_nacimiento)
+    return ResponseBase(data=resultado, message="Estudiante localizado con éxito")
