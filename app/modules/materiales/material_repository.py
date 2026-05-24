@@ -140,6 +140,17 @@ class MaterialRepository:
             .filter(MaterialModel.fecha_publicacion <= datetime.now())
             .first()
         )
+    
+    def get_all_material_principal(self, convocatoria_id: int):
+        return (
+            self.db.query(MaterialModel.enlace_acceso, material_convocatoria.c.importancia_tipo)
+            .join(material_convocatoria, material_convocatoria.c.id_material == MaterialModel.id_material)
+            .filter(material_convocatoria.c.id_convocatoria == convocatoria_id)
+            .filter(MaterialModel.visibilidad == "PUBLICO")
+            .filter(MaterialModel.fecha_publicacion.isnot(None))
+            .filter(MaterialModel.fecha_publicacion <= datetime.now())
+            .all()
+        )
 
     def get_principales_public(self, importancia_tipo: str | None = None):
         query = (

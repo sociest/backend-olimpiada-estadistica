@@ -219,6 +219,9 @@ class MaterialService:
             raise NotFoundError("Material no encontrado")
         return material
 
+    def get_all_material_principal(self, convocatoria_id: int):
+        return self.repository.get_all_material_principal(convocatoria_id)
+
     def delete_material_principal(self, convocatoria_id: int, importancia_tipo: str, current_admin_id: int):
         material = self.get_material_principal(convocatoria_id, importancia_tipo)
         material.visibilidad = "PRIVADO"

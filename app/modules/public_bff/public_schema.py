@@ -23,7 +23,7 @@ class CategoriaDetalleDTO(BaseModel):
 
 class MaterialPrincipalDTO(BaseModel):
     enlace_acceso: Optional[str] = None
-    mensaje: Optional[str] = None
+    importancia_tipo: Optional[str] = None
 
 
 class MaterialPrincipalDetalleDTO(BaseModel):
@@ -73,7 +73,7 @@ class AvisoInicioDTO(BaseModel):
 
 class InicioResponseDTO(BaseModel):
     convocatoria: Optional[ConvocatoriaResponseDTO] = None
-    material_principal: MaterialPrincipalDTO
+    material_principal: List[MaterialPrincipalDTO]
     categorias: List[CategoriaInicioDTO]
     avisos: List[AvisoInicioDTO]
 

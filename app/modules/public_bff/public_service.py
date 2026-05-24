@@ -36,7 +36,7 @@ class PublicBffService:
             avisos = await avisos_task
             return {
                 "convocatoria": None,
-                "material_principal": self._format_material_principal(None),
+                "material_principal": [],
                 "categorias": [],
                 "avisos": self._format_avisos(avisos or []),
             }
@@ -44,14 +44,14 @@ class PublicBffService:
         categorias_task = asyncio.to_thread(
             self.categoria_service.get_resumen_by_convocatoria, convocatoria.id_convocatoria
         )
-        material_principal_task = asyncio.to_thread(
-            self._safe_get_material_principal_inicio,
+        materiales_principales_task = asyncio.to_thread(
+            self._safe_get_materiales_principales_inicio,
             convocatoria.id_convocatoria,
         )
-        categorias, avisos, material_principal = await asyncio.gather(categorias_task, avisos_task, material_principal_task)
+        categorias, avisos, materiales_principales = await asyncio.gather(categorias_task, avisos_task, materiales_principales_task)
         return {
             "convocatoria": convocatoria,
-            "material_principal": self._format_material_principal(material_principal),
+            "material_principal": self._format_material_principal(materiales_principales or []),
             "categorias": self._format_categorias_inicio(convocatoria, categorias or []),
             "avisos": self._format_avisos(avisos or []),
         }
@@ -143,29 +143,26 @@ class PublicBffService:
         except Exception:
             return None
 
+    #### NO TOCAR ESTO
     def _safe_get_material_principal_public(self, convocatoria_id: int, importancia_tipo: str):
         try:
             return self.material_service.get_material_principal_public(convocatoria_id, importancia_tipo)
         except Exception:
             return None
+    ####
+    def _safe_get_materiales_principales_inicio(self, convocatoria_id: int):
+        try:
+            return self.material_service.get_all_material_principal(convocatoria_id)
+        except Exception:
+            return []
 
-    def _safe_get_material_principal_inicio(self, convocatoria_id: int):
-        for importancia_tipo in ("AFICHE", "CONVOCATORIA"):
-            material = self._safe_get_material_principal_public(convocatoria_id, importancia_tipo)
-            if material is not None:
-                return material
-        return None
-
-    def _format_material_principal(self, material):
-        if material is None:
-            return {
-                "enlace_acceso": None,
-                "mensaje": "No existe material principal AFICHE o CONVOCATORIA para la convocatoria",
-            }
-        return {
+    def _format_material_principal(self, materiales):
+        if not materiales:
+            return []
+        return [{
             "enlace_acceso": material.enlace_acceso,
-            "mensaje": None,
-        }
+            "importancia_tipo": material.importancia_tipo,
+        } for material in materiales]
 
     def _format_categorias_inicio(self, convocatoria, categorias):
         return [
