@@ -87,3 +87,13 @@ class ColaboradorResponseDTO(ColaboradorBaseDTO):
     materno: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
+class DirectorUpdateDTO(BaseModel):
+    id_colegio: Optional[int] = None # Si envías explicitamente None, lo desliga
+    telefono_1: Optional[str] = None
+    telefono_2: Optional[str] = None
+    nombres: Optional[str] = None
+    paterno: Optional[str] = None
+    materno: Optional[str] = None
+class DirectorMinifiedDTO(BaseModel):
+    id_director: int
+    nombres_completos: str

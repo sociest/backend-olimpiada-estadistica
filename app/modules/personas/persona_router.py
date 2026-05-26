@@ -11,6 +11,8 @@ from app.modules.personas.persona_schema import (
     DirectorResponseDTO,
     EstudianteCreateDTO,
     EstudianteResponseDTO,
+    DirectorUpdateDTO,
+    DirectorMinifiedDTO
 )
 from app.modules.personas.persona_service import PersonaService
 
@@ -76,3 +78,34 @@ def crear_colaborador(
     service = PersonaService(db)
     colaborador = service.create_colaborador(data)
     return ResponseBase(data=colaborador, message="Operacion exitosa")
+
+@router.get("/directores/lista-corta", response_model=ResponseBase[list[DirectorMinifiedDTO]])
+def listar_directores_corta(db: Session = Depends(get_db), current_admin_id: int = Depends(get_current_admin)):
+    service = PersonaService(db)
+    items = service.list_directores_minified()
+    return ResponseBase(data=items, message="Lista minificada obtenida exitosamente")
+
+@router.get("/directores/{director_id}", response_model=ResponseBase[DirectorResponseDTO])
+def obtener_director(director_id: int, db: Session = Depends(get_db), current_admin_id: int = Depends(get_current_admin)):
+    service = PersonaService(db)
+    director, persona = service.get_director_by_id(director_id)
+    data = service._format_director_response(director, persona)
+    return ResponseBase(data=data, message="Operacion exitosa")
+
+@router.put("/directores/{director_id}", response_model=ResponseBase[DirectorResponseDTO])
+def actualizar_director(director_id: int, data: DirectorUpdateDTO, db: Session = Depends(get_db), current_admin_id: int = Depends(get_current_admin)):
+    service = PersonaService(db)
+    director = service.update_director(director_id, data)
+    return ResponseBase(data=director, message="Director actualizado correctamente")
+
+@router.patch("/directores/{director_id}/baja", response_model=ResponseBase[DirectorResponseDTO])
+def baja_logica_director(director_id: int, db: Session = Depends(get_db), current_admin_id: int = Depends(get_current_admin)):
+    service = PersonaService(db)
+    director = service.delete_director_logic(director_id)
+    return ResponseBase(data=director, message="Director dado de baja lógicamente")
+
+@router.delete("/directores/{director_id}", response_model=ResponseBase[dict])
+def eliminar_director_total(director_id: int, db: Session = Depends(get_db), current_admin_id: int = Depends(get_current_admin)):
+    service = PersonaService(db)
+    service.delete_director_total(director_id)
+    return ResponseBase(data={}, message="Director eliminado permanentemente")

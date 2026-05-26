@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String
-
+from sqlalchemy.orm import relationship
 from app.db.database import Base
 
 
@@ -14,4 +14,5 @@ class ColegioModel(Base):
     departamento = Column(String(100), nullable=False)
     municipio = Column(String(100), nullable=False)
     calle = Column(String(255), nullable=True)
-    estado = Column(String(20), nullable=False)
+    estado = Column(String(20), nullable=False, default="PENDIENTE")
+    directores = relationship("DirectorModel", back_populates="colegio")

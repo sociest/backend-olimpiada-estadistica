@@ -20,12 +20,11 @@ class ColegioService:
             raise NotFoundError("Colegio no encontrado")
         return colegio
 
-    def get_all(self, page: int, limit: int):
+    def get_all(self, page: int, limit: int, filters: dict = None):
         skip = (page - 1) * limit
-        items = self.repository.get_all(skip=skip, limit=limit)
-        total = self.repository.count_all()
+        items, total = self.repository.get_all_filtered(skip=skip, limit=limit, filters=filters or {})
         return items, total
-
+    
     def create(self, data: ColegioCreateDTO):
         colegio = ColegioModel(**data.model_dump())
         return self.repository.create(colegio)
@@ -36,6 +35,14 @@ class ColegioService:
         for key, value in updates.items():
             setattr(colegio, key, value)
         return self.repository.update(colegio)
+    
+    def delete_logic(self, colegio_id: int):
+        colegio = self.get_by_id(colegio_id)
+        return self.repository.update_estado(colegio, "INACTIVO")
+
+    def delete_total(self, colegio_id: int):
+        colegio = self.get_by_id(colegio_id)
+        self.repository.delete_physical(colegio)
 
     def parse_csv_file(self, file, departamento: str):
         return parse_csv_colegios( file=file, departamento=departamento)

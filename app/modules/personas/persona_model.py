@@ -1,15 +1,15 @@
 from sqlalchemy import Column, Date, ForeignKey, Integer, String, Text
-
+from sqlalchemy.orm import relationship
 from app.db.database import Base
 
 
 class PersonaModel(Base):
     __tablename__ = "persona"
-
     id_persona = Column(Integer, primary_key=True, index=True)
     nombres = Column(String(255), nullable=False)
     paterno = Column(String(255), nullable=False)
     materno = Column(String(255), nullable=True)
+    estado = Column(String(20), nullable=False, default="ACTIVO")
 
 
 class EstudianteModel(Base):
@@ -33,6 +33,7 @@ class DirectorModel(Base):
     id_colegio = Column(Integer, ForeignKey("colegio.id_colegio"), nullable=True, index=True)
     telefono_1 = Column(String(50), nullable=True)
     telefono_2 = Column(String(50), nullable=True)
+    colegio = relationship("ColegioModel", back_populates="directores")
 
 
 class ColaboradorModel(Base):

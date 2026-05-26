@@ -1,7 +1,6 @@
 from typing import Optional, List
-
 from pydantic import BaseModel, ConfigDict
-
+from app.modules.personas.persona_schema import DirectorResponseDTO
 
 class ColegioBaseDTO(BaseModel):
     codigo: int
@@ -31,7 +30,10 @@ class ColegioUpdateDTO(BaseModel):
 
 class ColegioResponseDTO(ColegioBaseDTO):
     id_colegio: int
+    model_config = ConfigDict(from_attributes=True)
 
+class ColegioDetailResponseDTO(ColegioResponseDTO):
+    directores: List[DirectorResponseDTO] = []
     model_config = ConfigDict(from_attributes=True)
 
 

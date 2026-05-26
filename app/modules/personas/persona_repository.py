@@ -81,4 +81,23 @@ class PersonaRepository:
     def count_colaboradores(self):
         return self.db.query(ColaboradorModel).count()
     
-    
+    def get_director_by_id(self, director_id: int):
+        return self.db.query(DirectorModel, PersonaModel)\
+            .join(PersonaModel, DirectorModel.id_director == PersonaModel.id_persona)\
+            .filter(DirectorModel.id_director == director_id).first()
+
+    def update_director(self, director: DirectorModel, persona: PersonaModel):
+        self.db.commit()
+        self.db.refresh(director)
+        self.db.refresh(persona)
+        return director, persona
+
+    def delete_director_total(self, director: DirectorModel, persona: PersonaModel):
+        self.db.delete(director)
+        self.db.delete(persona)
+        self.db.commit()
+
+    def list_directores_minified(self):
+        return self.db.query(PersonaModel.id_persona, PersonaModel.nombres, PersonaModel.paterno, PersonaModel.materno)\
+            .join(DirectorModel, DirectorModel.id_director == PersonaModel.id_persona)\
+            .filter(PersonaModel.estado == "ACTIVO").all()

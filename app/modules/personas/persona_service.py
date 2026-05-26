@@ -12,6 +12,7 @@ from app.modules.personas.persona_schema import (
     ColaboradorCreateDTO,
     DirectorCreateDTO,
     EstudianteCreateDTO,
+    DirectorUpdateDTO
 )
 
 
@@ -229,3 +230,55 @@ class PersonaService:
         if not persona:
             raise NotFoundError("Persona no encontrada")
         return persona
+
+    def get_director_by_id(self, director_id: int):
+        row = self.repository.get_director_by_id(director_id)
+        if not row:
+            raise NotFoundError("Director no encontrado")
+        return row
+
+    def update_director(self, director_id: int, data: DirectorUpdateDTO):
+        director, persona = self.get_director_by_id(director_id)
+
+        if data.nombres is not None: persona.nombres = data.nombres
+        if data.paterno is not None: persona.paterno = data.paterno
+        if data.materno is not None: persona.materno = data.materno
+        
+        if data.id_colegio is not None or "id_colegio" in data.model_dump(exclude_unset=True):
+            director.id_colegio = data.id_colegio 
+        if data.telefono_1 is not None: director.telefono_1 = data.telefono_1
+        if data.telefono_2 is not None: director.telefono_2 = data.telefono_2
+
+        self.repository.update_director(director, persona)
+        return self._format_director_response(director, persona)
+
+    def delete_director_logic(self, director_id: int):
+        director, persona = self.get_director_by_id(director_id)
+        persona.estado = "INACTIVO" 
+        self.repository.update_director(director, persona)
+        return self._format_director_response(director, persona)
+
+    def delete_director_total(self, director_id: int):
+        director, persona = self.get_director_by_id(director_id)
+        self.repository.delete_director_total(director, persona)
+
+    def list_directores_minified(self):
+        rows = self.repository.list_directores_minified()
+        return [
+            {
+                "id_director": row.id_persona,
+                "nombres_completos": f"{row.nombres} {row.paterno} {row.materno or ''}".strip()
+            }
+            for row in rows
+        ]
+
+    def _format_director_response(self, director, persona):
+        return {
+            "id_director": director.id_director,
+            "nombres": persona.nombres,
+            "paterno": persona.paterno,
+            "materno": persona.materno,
+            "id_colegio": director.id_colegio,
+            "telefono_1": director.telefono_1,
+            "telefono_2": director.telefono_2,
+        }

@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, File, Form, UploadFile
 from sqlalchemy.orm import Session
 import os
 from fastapi.responses import FileResponse
+from typing import Optional
 
 from app.core.dependencies import get_current_admin
 from app.core.exceptions import NotFoundError
 from app.core.responses import PaginatedData, PaginatedResponse, PaginationMeta, ResponseBase
 from app.db.database import get_db
-from app.modules.colegios.colegio_schema import ColegioCreateDTO, ColegioResponseDTO, ColegioUpdateDTO
+from app.modules.colegios.colegio_schema import ColegioCreateDTO, ColegioResponseDTO, ColegioUpdateDTO, ColegioDetailResponseDTO
 from app.modules.colegios.colegio_service import ColegioService
 from app.modules.colegios.colegio_schema import CSVImportDBResponseDTO, CSVUploadResponseDTO, ColegioCSVImportDTO
 from app.modules.colegios.csv.service import generar_csv_errores, obtener_csv_error_path
@@ -16,20 +17,32 @@ router = APIRouter(prefix="/colegios", tags=["colegios"])
 
 
 @router.get("", response_model=PaginatedResponse[ColegioResponseDTO])
-def listar_colegios(page: int = 1, limit: int = 10, db: Session = Depends(get_db)):
+def listar_colegios(
+    page: int = 1, limit: int = 10,
+    nombre: Optional[str] = None,
+    municipio: Optional[str] = None,
+    estado: Optional[str] = None,
+    tipo: Optional[str] = None,
+    turno: Optional[str] = None,
+    director_nombre: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_admin_id: int = Depends(get_current_admin)
+):
     service = ColegioService(db)
-    items, total = service.get_all(page=page, limit=limit)
+    filters = {
+        "nombre": nombre, "municipio": municipio, "estado": estado,
+        "tipo": tipo, "turno": turno, "director_nombre": director_nombre
+    }
+    items, total = service.get_all(page=page, limit=limit, filters=filters)
     meta = PaginationMeta(page=page, limit=limit, total=total, total_pages=(total + limit - 1) // limit)
     data = PaginatedData(items=items, meta=meta)
     return PaginatedResponse(data=data, message="Lista obtenida correctamente")
 
-
-@router.get("/{colegio_id}", response_model=ResponseBase[ColegioResponseDTO])
-def obtener_colegio(colegio_id: int, db: Session = Depends(get_db)):
+@router.get("/{colegio_id}", response_model=ResponseBase[ColegioDetailResponseDTO])
+def obtener_colegio(colegio_id: int, db: Session = Depends(get_db), current_admin_id: int = Depends(get_current_admin)):
     service = ColegioService(db)
     colegio = service.get_by_id(colegio_id)
     return ResponseBase(data=colegio, message="Operacion exitosa")
-
 
 @router.post("", response_model=ResponseBase[ColegioResponseDTO])
 def crear_colegio(
@@ -52,6 +65,19 @@ def actualizar_colegio(
     service = ColegioService(db)
     colegio = service.update(colegio_id, data)
     return ResponseBase(data=colegio, message="Operacion exitosa")
+
+@router.patch("/{colegio_id}/baja", response_model=ResponseBase[ColegioResponseDTO])
+def baja_logica_colegio(colegio_id: int, db: Session = Depends(get_db), current_admin_id: int = Depends(get_current_admin)):
+    service = ColegioService(db)
+    colegio = service.delete_logic(colegio_id)
+    return ResponseBase(data=colegio, message="Colegio dado de baja lógicamente (INACTIVO)")
+
+
+@router.delete("/{colegio_id}", response_model=ResponseBase[dict])
+def eliminar_colegio_total(colegio_id: int, db: Session = Depends(get_db), current_admin_id: int = Depends(get_current_admin)):
+    service = ColegioService(db)
+    service.delete_total(colegio_id)
+    return ResponseBase(data={}, message="Colegio eliminado permanentemente")
 
 
 @router.post("/subir-csv", response_model=ResponseBase[CSVUploadResponseDTO])
