@@ -68,6 +68,15 @@ class PublicBffService:
         except Exception:
             return []
         return items or []
+    
+    async def get_colaboradores_activos_by_tipo(self, tipo: str):
+        try:
+            items, _ = await asyncio.to_thread(
+                self.persona_service.get_colaboradores_activos_by_tipo, tipo, 1, 1000
+            )
+        except Exception:
+            return []
+        return items or []
 
     async def get_convocatoria_detalle(self, convocatoria_id: int):
         convocatoria = await asyncio.to_thread(self._safe_get_convocatoria_by_id, convocatoria_id)

@@ -75,6 +75,16 @@ class PersonaRepository:
             .all()
         )
     
+    def list_colaboradores_activos_by_tipo(self, tipo: str, skip: int, limit: int):
+        return (
+            self.db.query(ColaboradorModel, PersonaModel)
+            .join(PersonaModel, ColaboradorModel.id_colaborador == PersonaModel.id_persona)
+            .filter(ColaboradorModel.tipo == tipo, PersonaModel.estado == "ACTIVO")
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+
     def get_colaborador_by_id(self, colaborador_id: int):
         return self.db.query(ColaboradorModel).filter(ColaboradorModel.id_colaborador == colaborador_id).first()
 
@@ -115,6 +125,9 @@ class PersonaRepository:
 
     def count_colaboradores_by_tipo(self, tipo: str):
         return self.db.query(ColaboradorModel).filter(ColaboradorModel.tipo == tipo).count()
+
+    def count_colaboradores_activos_by_tipo(self, tipo: str):
+        return self.db.query(ColaboradorModel).filter(ColaboradorModel.tipo == tipo, PersonaModel.estado == "ACTIVO").count()
 
     def count_colaboradores(self):
         return self.db.query(ColaboradorModel).count()

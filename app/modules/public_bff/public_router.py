@@ -52,7 +52,7 @@ async def obtener_personal(
     db: Session = Depends(get_db),
 ):
     service = _get_service(db)
-    items = await service.get_personal(tipo)
+    items = await service.get_colaboradores_activos_by_tipo(tipo)
     return ResponseBase(data=items, message="Lista obtenida correctamente")
 
 
