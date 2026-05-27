@@ -74,20 +74,30 @@ class ColaboradorBaseDTO(BaseModel):
     tipo: str
     correo: str
 
-
 class ColaboradorCreateDTO(ColaboradorBaseDTO):
     nombres: str
     paterno: str
     materno: Optional[str] = None
 
+class ColaboradorUpdateDTO(BaseModel):
+    nombres: Optional[str] = None
+    paterno: Optional[str] = None
+    materno: Optional[str] = None
+    presentacion: Optional[str] = None
+    rol: Optional[str] = None
+    tipo: Optional[str] = None
+    correo: Optional[str] = None
 
 class ColaboradorResponseDTO(ColaboradorBaseDTO):
     id_colaborador: int
     nombres: str
     paterno: str
     materno: Optional[str] = None
+    perfil: Optional[str] = None
+    estado: str
 
     model_config = ConfigDict(from_attributes=True)
+    
 class DirectorUpdateDTO(BaseModel):
     id_colegio: Optional[int] = None # Si envías explicitamente None, lo desliga
     telefono_1: Optional[str] = None

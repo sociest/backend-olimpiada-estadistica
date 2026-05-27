@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-
+from fastapi import UploadFile
 from app.core.exceptions import NotFoundError
 from app.modules.personas.persona_model import (
     ColaboradorModel,
@@ -10,16 +10,19 @@ from app.modules.personas.persona_model import (
 from app.modules.personas.persona_repository import PersonaRepository
 from app.modules.personas.persona_schema import (
     ColaboradorCreateDTO,
+    ColaboradorUpdateDTO,
     DirectorCreateDTO,
     EstudianteCreateDTO,
     DirectorUpdateDTO
 )
-
+from app.core.supabase_storage import SupabaseStorageClient
+from app.core.exceptions import BusinessRuleError
 
 class PersonaService:
     def __init__(self, db: Session):
         self.db = db
         self.repository = PersonaRepository(db)
+        self.storage = SupabaseStorageClient()
 
     def list_estudiantes(self, page: int, limit: int):
         skip = (page - 1) * limit
@@ -63,24 +66,6 @@ class PersonaService:
         ]
         return items, total
 
-    def list_colaboradores(self, page: int, limit: int):
-        skip = (page - 1) * limit
-        rows = self.repository.list_colaboradores(skip=skip, limit=limit)
-        total = self.repository.count_colaboradores()
-        items = [
-            {
-                "id_colaborador": colaborador.id_colaborador,
-                "nombres": persona.nombres,
-                "paterno": persona.paterno,
-                "materno": persona.materno,
-                "presentacion": colaborador.presentacion,
-                "rol": colaborador.rol,
-                "tipo": colaborador.tipo,
-                "correo": colaborador.correo,
-            }
-            for colaborador, persona in rows
-        ]
-        return items, total
 
     def get_personal_by_tipo(self, tipo: str, page: int, limit: int):
         skip = (page - 1) * limit
@@ -193,39 +178,85 @@ class PersonaService:
             self.db.rollback()
             raise
 
-    def create_colaborador(self, data: ColaboradorCreateDTO):
-        try:
-            persona = PersonaModel(
-                nombres=data.nombres,
-                paterno=data.paterno,
-                materno=data.materno
-            )
-            self.repository.create_persona(persona)
-            
-            colaborador = ColaboradorModel(
-                id_colaborador=persona.id_persona,
-                presentacion=data.presentacion,
-                rol=data.rol,
-                tipo=data.tipo,
-                correo=data.correo,
-            )
-            self.repository.create_colaborador(colaborador)
-            
-            self.db.commit()
-            
-            return {
-                "id_colaborador": colaborador.id_colaborador,
-                "nombres": persona.nombres,
-                "paterno": persona.paterno,
-                "materno": persona.materno,
-                "presentacion": colaborador.presentacion,
-                "rol": colaborador.rol,
-                "tipo": colaborador.tipo,
-                "correo": colaborador.correo,
-            }
-        except Exception:
-            self.db.rollback()
-            raise
+
+    def get_colaborador_by_id(self, colaborador_id: int):
+        colaborador = self.repository.get_colaborador_by_id(colaborador_id)
+        if not colaborador:
+            raise NotFoundError("Colaborador no encontrado")
+        return colaborador
+
+    def create_colaborador(self, data: ColaboradorCreateDTO, perfil_file: UploadFile = None):
+        perfil_url = None
+        if perfil_file:
+            content = perfil_file.file.read()
+            perfil_url = self.storage.upload_file(content, perfil_file.filename, "perfiles")
+
+        persona = PersonaModel(nombres=data.nombres, paterno=data.paterno, materno=data.materno)
+        colaborador = ColaboradorModel(
+            perfil=perfil_url,
+            presentacion=data.presentacion,
+            rol=data.rol,
+            tipo=data.tipo,
+            correo=data.correo
+        )
+        return self.repository.create_colaborador(persona, colaborador)
+
+    def update_colaborador(self, colaborador_id: int, data: ColaboradorUpdateDTO, perfil_file: UploadFile = None):
+        colaborador = self.repository.get_colaborador_by_id(colaborador_id)
+        if not colaborador:
+            raise BusinessRuleError("Colaborador no encontrado")
+        
+        if perfil_file:
+            if colaborador.perfil:
+                self.storage.delete_file(colaborador.perfil)
+            content = perfil_file.file.read()
+            colaborador.perfil = self.storage.upload_file(content, perfil_file.filename, "perfiles")
+
+        for key, value in data.model_dump(exclude_unset=True).items():
+            if hasattr(colaborador, key):
+                setattr(colaborador, key, value)
+            elif hasattr(colaborador.persona, key):
+                setattr(colaborador.persona, key, value)
+        
+        self.repository.update_colaborador()
+        return colaborador
+
+    def delete_logic(self, colaborador_id: int):
+        colaborador = self.repository.get_colaborador_by_id(colaborador_id)
+        colaborador.persona.estado = "INACTIVO"
+        self.repository.update_colaborador()
+        return colaborador
+
+    def activate_logic(self, colaborador_id: int):
+        colaborador = self.repository.get_colaborador_by_id(colaborador_id)
+        colaborador.persona.estado = "ACTIVO"
+        self.repository.update_colaborador()
+        return colaborador
+
+    def delete_physical(self, colaborador_id: int):
+        colaborador = self.repository.get_colaborador_by_id(colaborador_id)
+        if colaborador.perfil:
+            self.storage.delete_file(colaborador.perfil)
+        self.repository.delete_colaborador_physical(colaborador, colaborador.persona)
+
+    def list_colaboradores(self, page, limit, nombre, correo, tipo, rol):
+        skip = (page - 1) * limit
+        items, total = self.repository.list_colaboradores_advanced(skip, limit, nombre, correo, tipo, rol)
+        return [self._format_response(i) for i in items], total
+
+    def _format_response(self, c: ColaboradorModel):
+        return {
+            "id_colaborador": c.id_colaborador,
+            "nombres": c.nombres,
+            "paterno": c.paterno,
+            "materno": c.materno,
+            "perfil": c.perfil,
+            "presentacion": c.presentacion,
+            "rol": c.rol,
+            "tipo": c.tipo,
+            "correo": c.correo,
+            "estado": c.persona.estado
+        }
 
     def get_persona(self, persona_id: int):
         persona = self.repository.get_persona_by_id(persona_id)

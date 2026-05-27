@@ -73,8 +73,8 @@ class DirectorModel(Base):
 
 class ColaboradorModel(Base):
     __tablename__ = "colaborador"
-
     id_colaborador = Column(Integer, ForeignKey("persona.id_persona"), primary_key=True)
+    perfil = Column(String(255), nullable=True)
     presentacion = Column(Text, nullable=True)
     rol = Column(String(100), nullable=False)
     tipo = Column(String(30), nullable=False)
@@ -84,12 +84,12 @@ class ColaboradorModel(Base):
 
     @property
     def nombres(self):
-        return self.persona.nombres if self.persona else "Sin nombre"
+        return self.persona.nombres if self.persona else ""
 
     @property
     def paterno(self):
-        return self.persona.paterno if self.persona else "Sin apellido"
+        return self.persona.paterno if self.persona else ""
 
     @property
     def materno(self):
-        return self.persona.materno if self.persona else None
+        return self.persona.materno if self.persona else ""

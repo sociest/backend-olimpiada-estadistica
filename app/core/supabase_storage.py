@@ -77,3 +77,21 @@ class SupabaseStorageClient:
     def _safe_filename(self, filename: str) -> str:
         name = Path(filename).name.replace(" ", "_")
         return name or "material"
+
+    def upload_file(self, content: bytes, filename: str, folder: str, content_type: str = None) -> str:
+        detected_type = content_type or mimetypes.guess_type(filename)[0] or "application/octet-stream"
+        safe_filename = f"{uuid.uuid4().hex}_{filename.replace(' ', '_')}"
+        storage_path = f"{folder}/{safe_filename}"
+        
+        self.client.storage.from_(self.bucket).upload(
+            storage_path, content, {"content-type": detected_type, "upsert": "true"}
+        )
+        return f"{self.base_url}/storage/v1/object/public/{self.bucket}/{parse.quote(storage_path)}"
+
+    def delete_file(self, file_url: str):
+        try:
+            path_in_bucket = file_url.split(f"{self.bucket}/")[-1]
+            decoded_path = parse.unquote(path_in_bucket)
+            self.client.storage.from_(self.bucket).remove([decoded_path])
+        except Exception:
+            pass
