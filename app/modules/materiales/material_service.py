@@ -66,7 +66,7 @@ class MaterialService:
         if "descripcion" in updates:
             material.descripcion = self._normalize_descripcion(material.descripcion)
         if "fecha_publicacion" in updates:
-            material.visibilidad = self._resolve_visibilidad(material.fecha_publicacion)
+            material.estado = self._resolve_estado(material.fecha_publicacion)
         if "tipo_material" in updates and material.tipo_material == "PRINCIPAL":
             raise BusinessRuleError("Tipo de material no permitido en este endpoint")
 
@@ -173,7 +173,7 @@ class MaterialService:
         )
         material = await self._create_material(data, archivo, current_admin_id, allow_principal=True)
         if existing is not None:
-            existing.visibilidad = "PRIVADO"
+            existing.estado = "OCULTO"
             existing.tipo_material = "OTRO"
             self.repository.update(existing)
             self.repository.update_importancia_tipo(convocatoria_id, existing.id_material, "OTRO")
@@ -202,7 +202,7 @@ class MaterialService:
         material.nombre_material = f"{convocatoria.gestion}_{importancia_tipo}_{convocatoria_id}"
         material.descripcion = None
         material.fecha_publicacion = datetime.now()
-        material.visibilidad = "PUBLICO"
+        material.estado = "PUBLICADO"
         self.repository.update(material)
         self.repository.set_relacion_convocatoria(convocatoria_id, material_id, importancia_tipo)
 
@@ -219,12 +219,9 @@ class MaterialService:
             raise NotFoundError("Material no encontrado")
         return material
 
-    def get_all_material_principal(self, convocatoria_id: int):
-        return self.repository.get_all_material_principal(convocatoria_id)
-
     def delete_material_principal(self, convocatoria_id: int, importancia_tipo: str, current_admin_id: int):
         material = self.get_material_principal(convocatoria_id, importancia_tipo)
-        material.visibilidad = "PRIVADO"
+        material.estado = "OCULTO"
         material.tipo_material = "OTRO"
         self.repository.update(material)
         self.repository.update_importancia_tipo(convocatoria_id, material.id_material, "OTRO")
@@ -246,8 +243,8 @@ class MaterialService:
             return cleaned
         return f"{cleaned[0].upper()}{cleaned[1:]}"
 
-    def _resolve_visibilidad(self, fecha_publicacion):
-        return "PUBLICO" if fecha_publicacion is not None else "PRIVADO"
+    def _resolve_estado(self, fecha_publicacion):
+        return "PUBLICADO" if fecha_publicacion is not None else "BORRADOR"
 
     def get_material_principal_public(self, convocatoria_id: int, importancia_tipo: str):
         material = self.repository.get_convocatoria_material_by_tipo_public(convocatoria_id, importancia_tipo)
@@ -298,13 +295,13 @@ class MaterialService:
         )
         nombre_material = self._normalize_nombre(data.nombre_material)
         descripcion = self._normalize_descripcion(data.descripcion)
-        visibilidad = self._resolve_visibilidad(data.fecha_publicacion)
+        estado = self._resolve_estado(data.fecha_publicacion)
 
         material = MaterialModel(
             nombre_material=nombre_material,
             enlace_acceso=enlace_acceso,
             descripcion=descripcion,
-            visibilidad=visibilidad,
+            estado=estado,
             tipo_material=data.tipo_material,
             fecha_publicacion=data.fecha_publicacion,
         )

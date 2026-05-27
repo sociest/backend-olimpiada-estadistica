@@ -30,7 +30,7 @@ class MaterialResponseDTO(BaseModel):
     enlace_acceso: str
     descripcion: Optional[str] = None
     fecha_creacion: datetime
-    visibilidad: str
+    estado: str
     tipo_material: str
     fecha_publicacion: Optional[datetime] = None
 

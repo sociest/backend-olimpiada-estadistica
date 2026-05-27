@@ -180,7 +180,7 @@ async def crear_afiche(
     data = MaterialCreateDTO(
         nombre_material="",
         descripcion=None,
-        tipo_material="AFICHE",
+        tipo_material="PRINCIPAL",
         fecha_publicacion=None,
     )
     service = MaterialService(db)
@@ -204,7 +204,7 @@ async def crear_convocatoria_principal(
     data = MaterialCreateDTO(
         nombre_material="",
         descripcion=None,
-        tipo_material="CONVOCATORIA",
+        tipo_material="PRINCIPAL",
         fecha_publicacion=None,
     )
     service = MaterialService(db)
@@ -228,7 +228,7 @@ async def crear_reglamento(
     data = MaterialCreateDTO(
         nombre_material="",
         descripcion=None,
-        tipo_material="REGLAMENTO",
+        tipo_material="PRINCIPAL",
         fecha_publicacion=None,
     )
     service = MaterialService(db)
@@ -252,7 +252,7 @@ async def actualizar_afiche(
     data = MaterialCreateDTO(
         nombre_material="",
         descripcion=None,
-        tipo_material="AFICHE",
+        tipo_material="PRINCIPAL",
         fecha_publicacion=None,
     )
     service = MaterialService(db)
@@ -276,7 +276,7 @@ async def actualizar_convocatoria_principal(
     data = MaterialCreateDTO(
         nombre_material="",
         descripcion=None,
-        tipo_material="CONVOCATORIA",
+        tipo_material="PRINCIPAL",
         fecha_publicacion=None,
     )
     service = MaterialService(db)
@@ -300,7 +300,7 @@ async def actualizar_reglamento(
     data = MaterialCreateDTO(
         nombre_material="",
         descripcion=None,
-        tipo_material="REGLAMENTO",
+        tipo_material="PRINCIPAL",
         fecha_publicacion=None,
     )
     service = MaterialService(db)
