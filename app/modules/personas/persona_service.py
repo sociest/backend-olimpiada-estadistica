@@ -81,7 +81,7 @@ class PersonaService:
                     "estado": persona.estado,
                     "id_colegio": director.id_colegio,
                     "telefono_1": director.telefono_1,
-                    "telefono_2": director.telefono_2,
+                    "telefono_2": director.telefono_2
                 }
                 for director, persona in rows
             ]
@@ -99,6 +99,8 @@ class PersonaService:
                 "rol": colaborador.rol,
                 "tipo": colaborador.tipo,
                 "correo": colaborador.correo,
+                "estado": persona.estado,
+                "perfil": colaborador.perfil
             }
             for colaborador, persona in rows
         ]
