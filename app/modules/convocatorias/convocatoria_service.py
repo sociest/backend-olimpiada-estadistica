@@ -75,7 +75,7 @@ class ConvocatoriaService:
         return self.repository.update(convocatoria)
 
     def calculate_estado_temporal(self, convocatoria: ConvocatoriaModel):
-        ahora = datetime.now()
+        ahora = datetime.utcnow()
 
         if convocatoria.estado == "BORRADOR":
             return "BORRADOR"
@@ -91,7 +91,7 @@ class ConvocatoriaService:
             and convocatoria.fecha_fin_inscripcion
             and convocatoria.fecha_inicio_inscripcion <= ahora <= convocatoria.fecha_fin_inscripcion
         ):
-            return "INSCRIPCION EN CURSO"
+            return "INSCRIPCION_EN_CURSO"
 
         if convocatoria.fin_olimpiadas and ahora.date() <= convocatoria.fin_olimpiadas:
             return "ACTIVA"

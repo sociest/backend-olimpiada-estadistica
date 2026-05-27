@@ -48,7 +48,10 @@ def crear_convocatoria(
 ):
     service = ConvocatoriaService(db)
     convocatoria = service.create(data)
-    return ResponseBase(data=convocatoria, message="Operacion exitosa")
+    data_out = convocatoria.__dict__.copy()
+    data_out.pop("_sa_instance_state", None)
+    data_out["estado_temporal"] = service.calculate_estado_temporal(convocatoria)
+    return ResponseBase(data=data_out, message="Operacion exitosa")
 
 
 @router.put("/{convocatoria_id}", response_model=ResponseBase[ConvocatoriaResponseDTO])
@@ -60,14 +63,20 @@ def actualizar_convocatoria(
 ):
     service = ConvocatoriaService(db)
     convocatoria = service.update(convocatoria_id, data)
-    return ResponseBase(data=convocatoria, message="Operacion exitosa")
+    data_out = convocatoria.__dict__.copy()
+    data_out.pop("_sa_instance_state", None)
+    data_out["estado_temporal"] = service.calculate_estado_temporal(convocatoria)
+    return ResponseBase(data=data_out, message="Operacion exitosa")
 
 
 @router.post("/{convocatoria_id}/publicar", response_model=ResponseBase[ConvocatoriaResponseDTO])
 def publicar_convocatoria(convocatoria_id: int, db: Session = Depends(get_db)):
     service = ConvocatoriaService(db)
     convocatoria = service.publish(convocatoria_id)
-    return ResponseBase(data=convocatoria, message="Operacion exitosa")
+    data_out = convocatoria.__dict__.copy()
+    data_out.pop("_sa_instance_state", None)
+    data_out["estado_temporal"] = service.calculate_estado_temporal(convocatoria)
+    return ResponseBase(data=data_out, message="Operacion exitosa")
 
 
 @router.delete("/{convocatoria_id}", response_model=ResponseBase[ConvocatoriaResponseDTO])
@@ -79,4 +88,7 @@ def eliminar_convocatoria(
     service = ConvocatoriaService(db)
     convocatoria = service.get_by_id(convocatoria_id)
     service.delete(convocatoria_id)
-    return ResponseBase(data=convocatoria, message="Operacion exitosa")
+    data_out = convocatoria.__dict__.copy()
+    data_out.pop("_sa_instance_state", None)
+    data_out["estado_temporal"] = service.calculate_estado_temporal(convocatoria)
+    return ResponseBase(data=data_out, message="Operacion exitosa")
