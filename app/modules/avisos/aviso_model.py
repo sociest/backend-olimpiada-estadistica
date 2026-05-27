@@ -12,3 +12,4 @@ class AvisoModel(Base):
     tipo = Column(String(20), nullable=False)
     fecha_creacion = Column(DateTime, nullable=False, server_default=func.now())
     fecha_publicacion = Column(DateTime, nullable=True)
+    estado = Column(String(20), nullable=False, server_default="BORRADOR")

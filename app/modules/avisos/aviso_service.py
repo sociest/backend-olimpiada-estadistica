@@ -37,6 +37,7 @@ class AvisoService:
 
     def create(self, data: AvisoCreateDTO, current_admin_id: int):
         aviso = AvisoModel(**data.model_dump())
+        aviso.estado = self._resolve_estado(aviso.fecha_publicacion)
         created_aviso = self.repository.create(aviso)
         self.auth_repository.create_auditoria(
             admin_id=current_admin_id,
@@ -50,6 +51,8 @@ class AvisoService:
         updates = data.model_dump(exclude_unset=True)
         for key, value in updates.items():
             setattr(aviso, key, value)
+        if "fecha_publicacion" in updates:
+            aviso.estado = self._resolve_estado(aviso.fecha_publicacion)
         updated_aviso = self.repository.update(aviso)
         self.auth_repository.create_auditoria(
             admin_id=current_admin_id,
@@ -75,3 +78,6 @@ class AvisoService:
             descripcion=f"Aviso eliminado: {deleted['titulo']}",
         )
         return deleted
+
+    def _resolve_estado(self, fecha_publicacion):
+        return "PUBLICADO" if fecha_publicacion is not None else "BORRADOR"

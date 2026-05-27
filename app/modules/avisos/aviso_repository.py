@@ -16,6 +16,7 @@ class AvisoRepository:
         return (
             self.db.query(AvisoModel)
             .filter(AvisoModel.id_aviso == aviso_id)
+            .filter(AvisoModel.estado == "PUBLICADO")
             .filter(AvisoModel.fecha_publicacion.isnot(None))
             .filter(AvisoModel.fecha_publicacion <= datetime.now())
             .first()
@@ -30,6 +31,7 @@ class AvisoRepository:
     def get_public(self, skip: int, limit: int):
         return (
             self.db.query(AvisoModel)
+            .filter(AvisoModel.estado == "PUBLICADO")
             .filter(AvisoModel.fecha_publicacion.isnot(None))
             .filter(AvisoModel.fecha_publicacion <= datetime.now())
             .offset(skip)
@@ -40,6 +42,7 @@ class AvisoRepository:
     def count_public(self):
         return (
             self.db.query(AvisoModel)
+            .filter(AvisoModel.estado == "PUBLICADO")
             .filter(AvisoModel.fecha_publicacion.isnot(None))
             .filter(AvisoModel.fecha_publicacion <= datetime.now())
             .count()
@@ -48,6 +51,7 @@ class AvisoRepository:
     def get_recent_public(self, limit: int):
         return (
             self.db.query(AvisoModel)
+            .filter(AvisoModel.estado == "PUBLICADO")
             .filter(AvisoModel.fecha_publicacion.isnot(None))
             .filter(AvisoModel.fecha_publicacion <= datetime.now())
             .order_by(AvisoModel.fecha_publicacion.desc())

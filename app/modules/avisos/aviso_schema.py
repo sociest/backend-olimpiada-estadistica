@@ -25,5 +25,6 @@ class AvisoResponseDTO(BaseModel):
     tipo: str
     fecha_creacion: datetime
     fecha_publicacion: Optional[datetime] = None
+    estado: str
 
     model_config = ConfigDict(from_attributes=True)
