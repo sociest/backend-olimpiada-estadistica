@@ -13,3 +13,4 @@ pandas
 unidecode
 slowapi
 httpx
+reportlab
