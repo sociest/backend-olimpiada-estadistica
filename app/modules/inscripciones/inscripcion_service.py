@@ -40,7 +40,10 @@ class InscripcionService:
             "id_colegio": estudiante.id_colegio,
             "ya_inscrito": False,
             "id_inscripcion": None,
-            "restriccion_edad": None
+            "restriccion_edad": None,
+            "inactividad": False,
+            "mensaje_inactividad": None
+            
         }
 
         if edad > 21:
@@ -50,11 +53,14 @@ class InscripcionService:
             response["restriccion_edad"] = "El estudiante es menor a la edad mínima requerida (14 años)."
             return response
 
-        # Verificar si ya cuenta con inscripciones activas
         inscripcion = self.db.query(InscripcionModel).filter(InscripcionModel.id_estudiante == estudiante.id_estudiante).first()
         if inscripcion:
             response["ya_inscrito"] = True
             response["id_inscripcion"] = inscripcion.id_inscripcion
+        
+        if persona.estado == "INACTIVO":
+            response["mensaje_inactividad"] = "El estudiante tiene su cuenta inactiva."
+            response["inactividad"] = True
 
         return response
 
@@ -121,6 +127,9 @@ class InscripcionService:
         existente = self.repository.get_inscripcion_existente(data.id_estudiante, data.id_convocatoria)
         if existente:
             raise ConflictError("Inscripción duplicada detectada para esta convocatoria")
+        
+        if estudiante.estado == "INACTIVO":
+            raise BusinessRuleError("El estudiante tiene su cuenta inactiva")
 
         nueva_inscripcion = InscripcionModel(
             id_estudiante=data.id_estudiante,
