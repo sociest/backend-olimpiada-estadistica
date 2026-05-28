@@ -8,9 +8,10 @@ from app.db.database import get_db
 from app.modules.inscripciones.inscripcion_schema import (
     InscripcionFormularioDTO, InscripcionFormularioRequestDTO, InscripcionFormularioResponseDTO,
     InscripcionResponseDTO, EstudianteBuscarRequestDTO, EstudianteBusquedaResponseDTO,
-    InscripcionAdminCreateDTO, InscripcionEstadoUpdateDTO
+    InscripcionAdminCreateDTO, InscripcionEstadoUpdateDTO, ExportarInscripcionesRequestDTO
 )
 from app.modules.inscripciones.inscripcion_service import InscripcionService
+from fastapi.responses import StreamingResponse
 
 router = APIRouter(prefix="/inscripciones", tags=["inscripciones"])
 
@@ -83,3 +84,30 @@ def eliminar_inscripcion(inscripcion_id: int, db: Session = Depends(get_db), cur
     service = InscripcionService(db)
     service.eliminar_inscripcion(inscripcion_id)
     return ResponseBase(data={}, message="Inscripción eliminada correctamente del registro")
+
+@router.post("/exportar/csv")
+def exportar_inscripciones_a_csv(
+    data: ExportarInscripcionesRequestDTO,
+    db: Session = Depends(get_db),
+    current_admin_id: int = Depends(get_current_admin)
+):
+    service = InscripcionService(db)
+    buffer = service.exportar_csv(data.id_inscripciones)
+    headers = {
+        'Content-Disposition': 'attachment; filename="estudiantes_seleccionados.csv"'
+    }
+    return StreamingResponse(buffer, media_type="text/csv", headers=headers)
+
+
+@router.post("/exportar/pdf")
+def exportar_inscripciones_a_pdf(
+    data: ExportarInscripcionesRequestDTO,
+    db: Session = Depends(get_db),
+    current_admin_id: int = Depends(get_current_admin)
+):
+    service = InscripcionService(db)
+    buffer = service.exportar_pdf(data.id_inscripciones)
+    headers = {
+        'Content-Disposition': 'attachment; filename="estudiantes_seleccionados.pdf"'
+    }
+    return StreamingResponse(buffer, media_type="application/pdf", headers=headers)

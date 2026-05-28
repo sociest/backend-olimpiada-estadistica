@@ -136,3 +136,22 @@ class InscripcionRepository:
 
     def commit(self):
         self.db.commit()
+    
+    def get_datos_exportacion(self, ids: list[int]):
+        return (
+            self.db.query(
+                EstudianteModel.carnet_identidad,
+                PersonaModel.nombres,
+                PersonaModel.paterno,
+                PersonaModel.materno,
+                ColegioModel.nombre.label("colegio_nombre"),
+                CategoriaModel.nombre.label("categoria_nombre"),
+                InscripcionModel.estado
+            )
+            .join(EstudianteModel, InscripcionModel.id_estudiante == EstudianteModel.id_estudiante)
+            .join(PersonaModel, EstudianteModel.id_estudiante == PersonaModel.id_persona)
+            .join(ColegioModel, EstudianteModel.id_colegio == ColegioModel.id_colegio)
+            .join(CategoriaModel, InscripcionModel.id_categoria == CategoriaModel.id_categoria)
+            .filter(InscripcionModel.id_inscripcion.in_(ids))
+            .all()
+        )

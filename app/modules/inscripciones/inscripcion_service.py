@@ -8,6 +8,8 @@ from app.modules.inscripciones.inscripcion_schema import InscripcionFormularioDT
 from app.modules.personas.persona_model import PersonaModel
 from app.modules.estudiantes.estudiante_model import EstudianteModel
 from typing import Optional
+import csv
+import io
 class InscripcionService:
     def __init__(self, db: Session):
         self.db = db
@@ -209,3 +211,94 @@ class InscripcionService:
 
     def _colegio_response(self, colegio):
         return {"nombre": colegio.nombre, "tipo": colegio.tipo, "turno": colegio.turno, "calle": colegio.calle}
+    
+    def exportar_csv(self, ids: list[int]) -> io.BytesIO:
+        datos = self.repository.get_datos_exportacion(ids)
+        output = io.StringIO()
+        output.write('\ufeff')
+        writer = csv.writer(output, delimiter=';')
+        writer.writerow(["Carnet Identidad", "Nombre Completo", "Colegio", "Categoría", "Estado Inscripción"])
+        
+        for row in datos:
+            nombre_completo = f"{row.nombres} {row.paterno or ''} {row.materno or ''}".strip()
+            writer.writerow([
+                row.carnet_identidad,
+                nombre_completo,
+                row.colegio_nombre,
+                row.categoria_nombre,
+                row.estado
+            ])
+        
+        buffer = io.BytesIO()
+        buffer.write(output.getvalue().encode('utf-8'))
+        buffer.seek(0)
+        return buffer
+
+    def exportar_pdf(self, ids: list[int]) -> io.BytesIO:
+        from reportlab.lib.pagesizes import letter
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib import colors
+        
+        datos = self.repository.get_datos_exportacion(ids)
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(
+            buffer, 
+            pagesize=letter, 
+            rightMargin=30, 
+            leftMargin=30, 
+            topMargin=30, 
+            bottomMargin=30
+        )
+        story = []
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'DocTitle',
+            parent=styles['Heading1'],
+            fontSize=18,
+            leading=22,
+            textColor=colors.HexColor('#1A365D'), # Azul Marino
+            alignment=1, # Centrado
+            spaceAfter=15
+        )
+        
+        story.append(Paragraph("Reporte de Estudiantes Inscritos Seleccionados", title_style))
+        story.append(Spacer(1, 10))
+        style_cell = ParagraphStyle('GridCell', parent=styles['Normal'], fontSize=9, leading=12)
+        style_header = ParagraphStyle('GridHeader', parent=styles['Normal'], fontSize=10, leading=12, textColor=colors.white, fontName='Helvetica-Bold')
+        tabla_data = [[
+            Paragraph("Carnet", style_header),
+            Paragraph("Nombre Completo", style_header),
+            Paragraph("Colegio", style_header),
+            Paragraph("Categoría", style_header),
+            Paragraph("Estado", style_header)
+        ]]
+        
+        for row in datos:
+            nombre_completo = f"{row.nombres} {row.paterno or ''} {row.materno or ''}".strip()
+            tabla_data.append([
+                Paragraph(row.carnet_identidad, style_cell),
+                Paragraph(nombre_completo, style_cell),
+                Paragraph(row.colegio_nombre, style_cell),
+                Paragraph(row.categoria_nombre, style_cell),
+                Paragraph(row.estado, style_cell)
+            ])
+        col_widths = [75, 155, 140, 112, 70]
+        
+        tabla_reporte = Table(tabla_data, colWidths=col_widths, repeatRows=1)
+        tabla_reporte.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1A365D')),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, 0), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#E2E8F0')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8FAFC')]), # Zebra striping
+            ('TOPPADDING', (0, 1), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+        ]))
+        
+        story.append(tabla_reporte)
+        doc.build(story)
+        buffer.seek(0)
+        return buffer

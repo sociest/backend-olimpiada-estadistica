@@ -96,3 +96,6 @@ class InscripcionAdminCreateDTO(BaseModel):
 
 class InscripcionEstadoUpdateDTO(BaseModel):
     estado: str
+
+class ExportarInscripcionesRequestDTO(BaseModel):
+    id_inscripciones: list[int]
