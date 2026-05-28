@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import Optional
 
 class Settings(BaseSettings):
     database_url: str = ""
@@ -19,6 +20,24 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
 
+    brevo_api_key: str = ""
+    brevo_base_url: str = "https://api.brevo.com/v3"
+    brevo_sender_name: str = ""
+    brevo_sender_email: str = ""
+    brevo_reply_to: str = ""
+    brevo_enabled: int = 1
+    
+    mailing_batch_size: int = 15
+    mailing_interval_minutes: int = 20
+    mailing_max_retries: int = 3
+    mailing_timeout_seconds: int = 30
+    
+    scheduler_timezone: str = "America/La_Paz"
+    mailing_enabled: int = 1
+    scheduler_enabled: int = 1
+
+    model_config = SettingsConfigDict(env_file=".env", extra="allow")
+    
     def get_database_url(self) -> str:
         if self.database_url:
             return self.database_url

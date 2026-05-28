@@ -8,9 +8,10 @@ passlib[bcrypt]
 python-multipart
 supabase
 bcrypt<4
-passlib[bcrypt]
 pandas
 unidecode
 slowapi
 httpx
 reportlab
+jinja2
+apscheduler
