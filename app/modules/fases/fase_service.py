@@ -40,6 +40,11 @@ class FaseService:
         total = self.repository.count_all()
         mapped_items = [self._map_to_polymorphic(item) for item in items]
         return mapped_items, total
+    
+    def get_by_id_categoria(self, categoria_id:int):
+        items = self.repository.get_by_id_categoria(categoria_id)
+        mapped_items = [self._map_to_polymorphic(item) for item in items]
+        return mapped_items
 
     def create_fase_prueba(self, data: FasePruebaCreateDTO):
         if data.id_fase_anterior:

@@ -19,6 +19,9 @@ class FaseRepository:
 
     def get_by_id(self, fase_id: int):
         return self.get_base_query().filter(FaseModel.id_fase == fase_id).first()
+    
+    def get_by_id_categoria(self, categoria_id: int):
+        return self.get_base_query().filter(FaseModel.id_categoria_fk == categoria_id).all()
 
     def get_activos_by_categoria(self, categoria_id: int, skip: int, limit: int):
         return (

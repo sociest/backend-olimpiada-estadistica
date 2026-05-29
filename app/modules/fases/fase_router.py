@@ -31,6 +31,19 @@ def obtener_fase(fase_id: int, db: Session = Depends(get_db)):
     fase = service.get_by_id(fase_id)
     return ResponseBase(data=fase, message="Fase obtenida exitosamente")
 
+@router.get("/categoria/{categoria_id}", response_model=PaginatedResponse[FaseResponsePolymorphic])
+def listar_fases_por_categoria(
+    categoria_id: int,
+    page: int = 1,
+    limit: int = 10,
+    db: Session = Depends(get_db)
+):
+    service = FaseService(db)
+    items = service.get_by_id_categoria(categoria_id)
+    meta = PaginationMeta(page=page, limit=limit, total=len(items), total_pages=(len(items) + limit - 1) // limit)
+    data = PaginatedData(items=items, meta=meta)
+    return PaginatedResponse(data=data, message="Lista de fases obtenida correctamente")
+
 @router.post("/prueba", response_model=ResponseBase[FasePruebaResponseDTO])
 def crear_fase_prueba(
     data: FasePruebaCreateDTO,
