@@ -9,7 +9,11 @@ class EmailLogRepository:
         self.db = db
 
     def _apply_eager_loading(self, query):
-        return query.options(selectinload(EmailLog.estudiante))
+        return query.options(
+            selectinload(EmailLog.estudiante),
+            selectinload(EmailLog.contacto),
+            selectinload(EmailLog.campania)
+        )
 
     def get_all(self, skip: int, limit: int, tipo: Optional[str], estado: Optional[str], 
                 id_campania: Optional[int], es_estudiante: Optional[bool], es_contacto: Optional[bool], es_campania: Optional[bool],

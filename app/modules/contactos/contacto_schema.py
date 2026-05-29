@@ -31,7 +31,7 @@ class ContactoCompletoResponseDTO(ContactoResponseDTO):
     
     model_config = ConfigDict(from_attributes=True)
 
-class BotonDTO(BaseModel):
+class EnlaceDTO(BaseModel):
     url: str
     texto: str
 
@@ -39,4 +39,4 @@ class ContactoRespuestaCreateDTO(BaseModel):
     asunto_correo: str
     contenido_mensaje: str
     contenido_secundario: Optional[str] = None
-    boton: Optional[BotonDTO] = None
+    enlaces: Optional[List[EnlaceDTO]] = []

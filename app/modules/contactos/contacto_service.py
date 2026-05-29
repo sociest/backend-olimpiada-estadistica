@@ -54,13 +54,15 @@ class ContactoService:
         if contacto.estado == EstadoContacto.RESPONDIDO:
             raise BusinessRuleError("Este contacto ya ha sido respondido")
 
+        dict_enlaces = [e.model_dump() for e in data.enlaces] if data.enlaces else []
+
         html_content = self.renderer.render_respuesta_contacto(
             asunto_correo=data.asunto_correo,
             usuario=contacto.nombre_completo,
             asunto_original=contacto.asunto,
             contenido_mensaje=data.contenido_mensaje,
             contenido_secundario=data.contenido_secundario,
-            boton=data.boton.model_dump() if data.boton else None
+            enlaces=dict_enlaces
         )
 
         email_log = EmailLog(
@@ -77,7 +79,11 @@ class ContactoService:
         self.repository.update()
         self.db.refresh(contacto)
         
-        self.auth_repository.create_auditoria(admin_id=current_admin_id, accion="RESPONDER_CONTACTO", descripcion=f"Respuesta generada para contacto {contacto.id_contacto}")
+        self.auth_repository.create_auditoria(
+            admin_id=current_admin_id, 
+            accion="RESPONDER_CONTACTO", 
+            descripcion=f"Respuesta generada para contacto {contacto.id_contacto}"
+        )
         return contacto
 
     def delete(self, contacto_id: int, current_admin_id: int):

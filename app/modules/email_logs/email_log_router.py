@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from typing import Optional
 from datetime import datetime
+from app.core.dependencies import get_current_admin
 from app.db.database import get_db
-from app.modules.email_logs.email_log_schema import EmailLogResponseDTO
+from app.modules.email_logs.email_log_schema import EmailLogResponseDTO, EmailLogCompletoResponseDTO
 from app.modules.email_logs.email_log_service import EmailLogService
 from app.core.responses import ResponseBase, PaginatedResponse, PaginationMeta
 
@@ -42,10 +43,15 @@ def listar_logs(
         data={"items": items, "meta": PaginationMeta(page=page, limit=limit, total=total, total_pages=total_pages)}
     )
 
-@router.get("/{id}", response_model=ResponseBase[EmailLogResponseDTO])
-def obtener_log(id: int, db: Session = Depends(get_db)):
+@router.get("/{id}", response_model=ResponseBase[EmailLogCompletoResponseDTO])
+def obtener_log_por_id(
+    id: int, 
+    db: Session = Depends(get_db), 
+    current_admin_id: int = Depends(get_current_admin)
+):
     service = EmailLogService(db)
-    return ResponseBase(success=True, message="Log encontrado", data=service.obtener_por_id(id))
+    log = service.obtener_por_id(id)
+    return ResponseBase(success=True, message="Log obtenido correctamente", data=log)
 
 @router.post("/reintentar-fallidos")
 def reintentar_fallidos(db: Session = Depends(get_db)):

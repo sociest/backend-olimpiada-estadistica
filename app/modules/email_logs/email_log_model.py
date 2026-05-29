@@ -36,5 +36,5 @@ class EmailLog(Base):
     id_campania = Column(Integer, ForeignKey("campania_email.id", ondelete="SET NULL"), nullable=True)
 
     campania = relationship("CampaniaEmail", back_populates="email_logs")
-    estudiante = relationship("EstudianteModel", back_populates="email_logs")
+    estudiante = relationship("EstudianteModel", back_populates="email_logs", foreign_keys=[id_estudiante])
     contacto = relationship("ContactoModel", back_populates="email_logs")
