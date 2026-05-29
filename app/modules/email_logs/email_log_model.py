@@ -32,8 +32,9 @@ class EmailLog(Base):
     updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
     
     id_estudiante = Column(Integer, ForeignKey("estudiante.id_estudiante", ondelete="SET NULL"), nullable=True)
-    id_contacto = Column(Integer, nullable=True) 
+    id_contacto = Column(Integer, ForeignKey("contacto.id_contacto", ondelete="SET NULL"), nullable=True)
     id_campania = Column(Integer, ForeignKey("campania_email.id", ondelete="SET NULL"), nullable=True)
 
     campania = relationship("CampaniaEmail", back_populates="email_logs")
     estudiante = relationship("EstudianteModel", back_populates="email_logs")
+    contacto = relationship("ContactoModel", back_populates="email_logs")

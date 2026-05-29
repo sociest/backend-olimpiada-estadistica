@@ -1,7 +1,8 @@
 import asyncio
 from datetime import datetime
 from sqlalchemy.orm import Session
-from app.modules.email_logs.email_log_model import EmailLog, EstadoEmail
+from sqlalchemy import case
+from app.modules.email_logs.email_log_model import EmailLog, EstadoEmail, TipoEmail
 from app.modules.campanias.campania_model import CampaniaEmail, EstadoCampania
 from app.services.mailing.brevo_client import BrevoClient
 from app.core.config import settings
@@ -12,11 +13,18 @@ class EmailSenderService:
         self.brevo_client = BrevoClient()
 
     async def process_pending_emails(self):
+        prioridad = case(
+            (EmailLog.tipo == TipoEmail.RESPUESTA_CONTACTO, 1), 
+            else_=2
+        )
+
         pendientes = self.db.query(EmailLog).outerjoin(CampaniaEmail, EmailLog.id_campania == CampaniaEmail.id)\
             .filter(
                 EmailLog.estado == EstadoEmail.PENDIENTE,
                 (CampaniaEmail.id == None) | (CampaniaEmail.estado == EstadoCampania.EN_PROCESO)
-            ).limit(settings.mailing_batch_size).all()
+            )\
+            .order_by(prioridad.asc(), EmailLog.fecha_creacion.asc())\
+            .limit(settings.mailing_batch_size).all()
 
         if not pendientes:
             return

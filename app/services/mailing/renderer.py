@@ -18,3 +18,14 @@ class EmailRenderer:
             contenido_secundario=contenido_secundario,
             enlaces=enlaces or []
         )
+    
+    def render_respuesta_contacto(self, asunto_correo: str, usuario: str, asunto_original: str, contenido_mensaje: str, contenido_secundario: str = None, boton: dict = None) -> str:
+        template = self.env.get_template("contacto.html")
+        return template.render(
+            asunto_correo=asunto_correo,
+            usuario=usuario,
+            asunto_original=asunto_original,
+            contenido_mensaje=contenido_mensaje,
+            contenido_secundario=contenido_secundario,
+            boton=boton
+        )
