@@ -31,6 +31,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123456
       POSTGRES_DB: olimpiadas_bd_v2
+      TZ: America/La_Paz
     volumes:
       # Persistencia de postgres
       - postgres_data:/var/lib/postgresql/data
