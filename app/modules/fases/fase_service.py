@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+
 from app.core.exceptions import BusinessRuleError, NotFoundError
 from app.modules.fases.fase_model import EstadoEntidad, FaseModel, FasePreparacionModel, FasePruebaModel
 from app.modules.fases.fase_repository import FaseRepository
@@ -9,6 +10,7 @@ from app.modules.fases.fase_schema import (
     FasePruebaCreateDTO,
     FasePruebaUpdateDTO,
 )
+
 
 class FaseService:
     def __init__(self, db: Session):
@@ -45,11 +47,6 @@ class FaseService:
             if not fase_ant or not fase_ant.prueba:
                 raise BusinessRuleError("La fase anterior debe existir y ser de tipo PRUEBA.")
 
-        if data.id_fase_preparacion_fk:
-            fase_prep = self.repository.get_by_id(data.id_fase_preparacion_fk)
-            if not fase_prep or not fase_prep.preparacion:
-                raise BusinessRuleError("La fase de preparación asociada debe existir y ser válida.")
-
         try:
             fase_base = FaseModel(
                 id_categoria_fk=data.id_categoria_fk,
@@ -63,7 +60,6 @@ class FaseService:
             fase_prueba = FasePruebaModel(
                 id_fase=fase_base.id_fase,
                 id_fase_anterior=data.id_fase_anterior,
-                id_fase_preparacion_fk=data.id_fase_preparacion_fk,
                 criterio_aprobacion=data.criterio_aprobacion,
                 fecha_realizacion=data.fecha_realizacion,
                 lugar_realizacion=data.lugar_realizacion,
@@ -103,6 +99,11 @@ class FaseService:
         if not fase or not fase.prueba:
             raise NotFoundError("Fase de Prueba no encontrada")
 
+        if data.id_fase_anterior:
+            fase_ant = self.repository.get_by_id(data.id_fase_anterior)
+            if not fase_ant or not fase_ant.prueba:
+                raise BusinessRuleError("La fase anterior debe existir y ser de tipo PRUEBA.")
+
         updates = data.model_dump(exclude_unset=True)
         for key, value in updates.items():
             if hasattr(fase, key):
@@ -141,7 +142,7 @@ class FaseService:
         if estado_actual == EstadoEntidad.LISTA and nuevo_estado not in [EstadoEntidad.ELIMINADA, EstadoEntidad.BORRADOR]:
             raise BusinessRuleError("De LISTA solo se puede pasar a ELIMINADA o BORRADOR.")
         if estado_actual == EstadoEntidad.ELIMINADA and nuevo_estado != EstadoEntidad.LISTA:
-            raise BusinessRuleError("Una fase ELIMINADA (Alta/Baja lógica) solo puede restaurarse a LISTA.")
+            raise BusinessRuleError("Una fase ELIMINADA solo puede restaurarse a LISTA.")
 
         fase.estado = nuevo_estado
         self.repository.update(fase)
