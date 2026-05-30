@@ -1,9 +1,12 @@
-from fastapi import APIRouter, Depends
+from datetime import datetime
+from typing import Optional
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_admin
-from app.core.responses import PaginatedData, PaginatedResponse, PaginationMeta, ResponseBase
+from app.core.responses import PaginatedData, PaginatedResponse, ResponseBase, PaginationMeta
 from app.db.database import get_db
+from app.modules.convocatorias.convocatoria_model import EstadoConvocatoria, EstadoTemporal
 from app.modules.convocatorias.convocatoria_schema import (
     ConvocatoriaCreateDTO,
     ConvocatoriaResponseDTO,
@@ -16,28 +19,27 @@ router = APIRouter(prefix="/convocatorias", tags=["convocatorias"])
 
 
 @router.get("", response_model=PaginatedResponse[ConvocatoriaResponseDTO])
-def listar_convocatorias(page: int = 1, limit: int = 10, db: Session = Depends(get_db)):
+def listar_convocatorias(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1),
+    estado: Optional[EstadoConvocatoria] = None,
+    estado_temporal: Optional[EstadoTemporal] = None,
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+    db: Session = Depends(get_db)
+):
     service = ConvocatoriaService(db)
-    items, total = service.get_all(page=page, limit=limit)
+    items, total = service.get_all(page, limit, estado, estado_temporal, start_date, end_date)
     meta = PaginationMeta(page=page, limit=limit, total=total, total_pages=(total + limit - 1) // limit)
-    mapped = []
-    for item in items:
-        data_item = item.__dict__.copy()
-        data_item.pop("_sa_instance_state", None)
-        data_item["estado_temporal"] = service.calculate_estado_temporal(item)
-        mapped.append(data_item)
-    data = PaginatedData(items=mapped, meta=meta)
-    return PaginatedResponse(data=data, message="Lista obtenida correctamente")
+    data = PaginatedData(items=items, meta=meta)
+    return PaginatedResponse(data=data, message="Lista de convocatorias obtenida correctamente")
 
 
 @router.get("/{convocatoria_id}", response_model=ResponseBase[ConvocatoriaResponseDTO])
 def obtener_convocatoria(convocatoria_id: int, db: Session = Depends(get_db)):
     service = ConvocatoriaService(db)
-    convocatoria = service.get_by_id(convocatoria_id)
-    data = convocatoria.__dict__.copy()
-    data.pop("_sa_instance_state", None)
-    data["estado_temporal"] = service.calculate_estado_temporal(convocatoria)
-    return ResponseBase(data=data, message="Operacion exitosa")
+    convocatoria_dict = service.get_by_id(convocatoria_id)
+    return ResponseBase(data=convocatoria_dict, message="Operación exitosa")
 
 
 @router.post("", response_model=ResponseBase[ConvocatoriaResponseDTO])
@@ -47,11 +49,8 @@ def crear_convocatoria(
     current_admin_id: int = Depends(get_current_admin),
 ):
     service = ConvocatoriaService(db)
-    convocatoria = service.create(data)
-    data_out = convocatoria.__dict__.copy()
-    data_out.pop("_sa_instance_state", None)
-    data_out["estado_temporal"] = service.calculate_estado_temporal(convocatoria)
-    return ResponseBase(data=data_out, message="Operacion exitosa")
+    convocatoria_dict = service.create(data)
+    return ResponseBase(data=convocatoria_dict, message="Convocatoria creada exitosamente en borrador")
 
 
 @router.put("/{convocatoria_id}", response_model=ResponseBase[ConvocatoriaResponseDTO])
@@ -62,33 +61,48 @@ def actualizar_convocatoria(
     current_admin_id: int = Depends(get_current_admin),
 ):
     service = ConvocatoriaService(db)
-    convocatoria = service.update(convocatoria_id, data)
-    data_out = convocatoria.__dict__.copy()
-    data_out.pop("_sa_instance_state", None)
-    data_out["estado_temporal"] = service.calculate_estado_temporal(convocatoria)
-    return ResponseBase(data=data_out, message="Operacion exitosa")
+    convocatoria_dict = service.update(convocatoria_id, data)
+    return ResponseBase(data=convocatoria_dict, message="Convocatoria actualizada exitosamente")
 
 
-@router.post("/{convocatoria_id}/publicar", response_model=ResponseBase[ConvocatoriaResponseDTO])
-def publicar_convocatoria(convocatoria_id: int, db: Session = Depends(get_db)):
-    service = ConvocatoriaService(db)
-    convocatoria = service.publish(convocatoria_id)
-    data_out = convocatoria.__dict__.copy()
-    data_out.pop("_sa_instance_state", None)
-    data_out["estado_temporal"] = service.calculate_estado_temporal(convocatoria)
-    return ResponseBase(data=data_out, message="Operacion exitosa")
-
-
-@router.delete("/{convocatoria_id}", response_model=ResponseBase[ConvocatoriaResponseDTO])
-def eliminar_convocatoria(
+@router.put("/{convocatoria_id}/publicar", response_model=ResponseBase[ConvocatoriaResponseDTO])
+def publicar_convocatoria(
     convocatoria_id: int,
     db: Session = Depends(get_db),
-    current_admin_id: int = Depends(get_current_admin),
+    current_admin_id: int = Depends(get_current_admin)
 ):
     service = ConvocatoriaService(db)
-    convocatoria = service.get_by_id(convocatoria_id)
-    service.delete(convocatoria_id)
-    data_out = convocatoria.__dict__.copy()
-    data_out.pop("_sa_instance_state", None)
-    data_out["estado_temporal"] = service.calculate_estado_temporal(convocatoria)
-    return ResponseBase(data=data_out, message="Operacion exitosa")
+    convocatoria_dict = service.cambiar_estado(convocatoria_id, EstadoConvocatoria.PUBLICADA)
+    return ResponseBase(data=convocatoria_dict, message="Convocatoria publicada exitosamente")
+
+
+@router.put("/{convocatoria_id}/ocultar", response_model=ResponseBase[ConvocatoriaResponseDTO])
+def ocultar_convocatoria(
+    convocatoria_id: int,
+    db: Session = Depends(get_db),
+    current_admin_id: int = Depends(get_current_admin)
+):
+    service = ConvocatoriaService(db)
+    convocatoria_dict = service.cambiar_estado(convocatoria_id, EstadoConvocatoria.OCULTA)
+    return ResponseBase(data=convocatoria_dict, message="Convocatoria ocultada exitosamente")
+
+
+@router.put("/{convocatoria_id}/cancelar", response_model=ResponseBase[ConvocatoriaResponseDTO])
+def cancelar_convocatoria(
+    convocatoria_id: int,
+    db: Session = Depends(get_db),
+    current_admin_id: int = Depends(get_current_admin)
+):
+    service = ConvocatoriaService(db)
+    convocatoria_dict = service.cambiar_estado(convocatoria_id, EstadoConvocatoria.CANCELADA)
+    return ResponseBase(data=convocatoria_dict, message="Convocatoria cancelada exitosamente")
+
+@router.delete("/{convocatoria_id}", response_model=ResponseBase[dict])
+def eliminar_convocatoria_fisica(
+    convocatoria_id: int,
+    db: Session = Depends(get_db),
+    current_admin_id: int = Depends(get_current_admin)
+):
+    service = ConvocatoriaService(db)
+    resultado = service.delete(convocatoria_id)
+    return ResponseBase(data=resultado, message="Convocatoria eliminada físicamente del sistema")
