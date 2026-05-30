@@ -14,6 +14,15 @@ class ResultadoRepository:
     def get_by_id(self, resultado_id: int):
         return self.db.query(ResultadoModel).filter(ResultadoModel.id_resultado == resultado_id).first()
 
+    def get_by_id_y_fase(self, id_resultado: int, id_fase_prueba: int):
+        return (
+            self.db.query(ResultadoModel)
+            .filter(
+                ResultadoModel.id_resultado == id_resultado,
+                ResultadoModel.id_fase_prueba == id_fase_prueba
+            )
+            .first()
+        )
     def get_by_inscripcion_y_fase(self, id_inscripcion: int, id_fase_prueba: int):
         return (
             self.db.query(ResultadoModel)

@@ -14,3 +14,4 @@ class InscripcionModel(Base):
     estudiante = relationship("EstudianteModel", lazy="joined")
     convocatoria = relationship("ConvocatoriaModel", lazy="joined")
     categoria = relationship("CategoriaModel", lazy="joined")
+    resultado = relationship("ResultadoModel", lazy="joined")

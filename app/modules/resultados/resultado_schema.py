@@ -48,7 +48,7 @@ class ResultadoMasivoCreateDTO(BaseModel):
 
 
 class ResultadoMasivoUpdateItemDTO(BaseModel):
-    id_inscripcion: int
+    id_resultado: int
     nota: int = Field(..., ge=0, le=100)
     observaciones: Optional[str] = None
 
