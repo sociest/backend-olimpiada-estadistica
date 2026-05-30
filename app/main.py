@@ -22,7 +22,7 @@ from app.modules.campanias.campania_router import router as campanias_router
 from app.modules.email_logs.email_log_router import router as email_logs_router
 from contextlib import asynccontextmanager
 from app.core.startup import create_initial_admin
-
+from app.modules.resultados.resultado_router import router as resultados_router
 import logging
 from contextlib import asynccontextmanager
 from app.core.config import settings
@@ -89,8 +89,9 @@ app.include_router(inscripcion_router)
 app.include_router(material_router)
 app.include_router(persona_router)
 app.include_router(public_router)
-app.include_router(campanias_router, prefix="/api/v1")
-app.include_router(email_logs_router, prefix="/api/v1")
+app.include_router(campanias_router)
+app.include_router(email_logs_router)
+app.include_router(resultados_router)
 
 @app.get("/")
 def root():
