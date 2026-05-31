@@ -70,19 +70,19 @@ def obtener_inscripcion_por_id(inscripcion_id: int, db: Session = Depends(get_db
 @router.post("/admin", response_model=ResponseBase[InscripcionResponseDTO])
 def crear_inscripcion_manual_admin(data: InscripcionAdminCreateDTO, db: Session = Depends(get_db), current_admin_id: int = Depends(get_current_admin)):
     service = InscripcionService(db)
-    nueva_ins = service.crear_inscripcion_admin(data)
+    nueva_ins = service.crear_inscripcion_admin(data, current_admin_id)
     return ResponseBase(data=nueva_ins, message="Inscripción creada manualmente por administrador")
 
 @router.patch("/{inscripcion_id}/estado", response_model=ResponseBase[InscripcionResponseDTO])
 def cambiar_estado_inscripcion(inscripcion_id: int, data: InscripcionEstadoUpdateDTO, db: Session = Depends(get_db), current_admin_id: int = Depends(get_current_admin)):
     service = InscripcionService(db)
-    inscripcion_act = service.actualizar_estado(inscripcion_id, data)
+    inscripcion_act = service.actualizar_estado(inscripcion_id, data, current_admin_id)
     return ResponseBase(data=inscripcion_act, message=f"Inscripción actualizada a estado {data.estado}")
 
 @router.delete("/{inscripcion_id}", response_model=ResponseBase[dict])
 def eliminar_inscripcion(inscripcion_id: int, db: Session = Depends(get_db), current_admin_id: int = Depends(get_current_admin)):
     service = InscripcionService(db)
-    service.eliminar_inscripcion(inscripcion_id)
+    service.eliminar_inscripcion(inscripcion_id, current_admin_id)
     return ResponseBase(data={}, message="Inscripción eliminada correctamente del registro")
 
 @router.post("/exportar/csv")

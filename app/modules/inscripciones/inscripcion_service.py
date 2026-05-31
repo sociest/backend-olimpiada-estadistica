@@ -10,10 +10,14 @@ from app.modules.estudiantes.estudiante_model import EstudianteModel
 from typing import Optional
 import csv
 import io
+from app.modules.sistema.sistema_repository import SistemaRepository
+from app.modules.sistema.sistema_model import TipoAccion, TipoActividad, TipoModulo, ActividadSistemaModel, AuditoriaModel
+
 class InscripcionService:
     def __init__(self, db: Session):
         self.db = db
         self.repository = InscripcionRepository(db)
+        self.sistema_repository = SistemaRepository(db)
 
     def _calcular_edad(self, fecha_nacimiento: date) -> int:
         today = date.today()
@@ -101,6 +105,15 @@ class InscripcionService:
             self.repository.create_inscripcion(inscripcion)
             self.repository.commit()
             self.db.refresh(inscripcion)
+            
+            actividad_registro = ActividadSistemaModel(
+                titulo=f"Inscripción creada para el estudiante: {estudiante.nombre} {estudiante.apellido}",
+                descripcion=f"Se ha creado una nueva inscripción para el estudiante: {estudiante.nombre} {estudiante.apellido}  {estudiante.materno} con CI: {inscripcion.id_inscripcion}",
+                tipo = TipoActividad.INSCRIPCION
+            )
+            
+            self.sistema_repository.create_actividad(actividad_registro)
+            
             return {
                 "inscripcion": inscripcion,
                 "estudiante": self._estudiante_response(estudiante, persona),
@@ -110,7 +123,7 @@ class InscripcionService:
             self.db.rollback()
             raise
 
-    def crear_inscripcion_admin(self, data: InscripcionAdminCreateDTO):
+    def crear_inscripcion_admin(self, data: InscripcionAdminCreateDTO, current_admin_id: int):
         estudiante = self.repository.get_estudiante_by_id(data.id_estudiante)
         if not estudiante:
             raise NotFoundError("Estudiante no registrado")
@@ -139,7 +152,16 @@ class InscripcionService:
             id_categoria=data.id_categoria,
             estado="PENDIENTE"
         )
+        
+        auditoria_registro = AuditoriaModel(
+            id_administrador=current_admin_id,
+            accion=TipoAccion.CREAR,
+            modulo=TipoModulo.INSCRIPCION,
+            descripcion=f"Se creó la inscripción para el estudiante: {estudiante.nombre} {estudiante.paterno} {estudiante.materno} con CI: {nueva_inscripcion.id_inscripcion}"
+        )
+        
         self.repository.create_inscripcion(nueva_inscripcion)
+        self.sistema_repository.create_auditoria(auditoria_registro)
         self.repository.commit()
         self.db.refresh(nueva_inscripcion)
         return nueva_inscripcion
@@ -160,17 +182,35 @@ class InscripcionService:
             raise NotFoundError("Inscripción no encontrada")
         return inscripcion
 
-    def actualizar_estado(self, inscripcion_id: int, data: InscripcionEstadoUpdateDTO):
+    def actualizar_estado(self, inscripcion_id: int, data: InscripcionEstadoUpdateDTO, current_admin_id: int):
         inscripcion = self.obtener_por_id(inscripcion_id)
         if data.estado not in ["APROBADO", "RECHAZADO", "PENDIENTE"]:
             raise BusinessRuleError("Estado de inscripcion invalido")
         inscripcion.estado = data.estado
+        
+        auditoria_registro = AuditoriaModel(
+            id_administrador=current_admin_id,
+            accion=TipoAccion.ACTUALIZAR,
+            modulo=TipoModulo.INSCRIPCION,
+            descripcion=f"Se actualizó la inscripción para el estudiante: {inscripcion.estudiante.nombre} {inscripcion.estudiante.paterno} {inscripcion.estudiante.materno} con CI: {inscripcion.id_inscripcion}"
+        )
+        
+        self.sistema_repository.create_auditoria(auditoria_registro)
         self.repository.commit()
         return inscripcion
 
-    def eliminar_inscripcion(self, inscripcion_id: int):
+    def eliminar_inscripcion(self, inscripcion_id: int, current_admin_id: int):
         inscripcion = self.obtener_por_id(inscripcion_id)
         self.repository.delete(inscripcion)
+        
+        auditoria_registro = AuditoriaModel(
+            id_administrador=current_admin_id,
+            accion=TipoAccion.ELIMINAR,
+            modulo=TipoModulo.INSCRIPCION,
+            descripcion=f"Se eliminó la inscripción para el estudiante: {inscripcion.estudiante.nombre} {inscripcion.estudiante.paterno} {inscripcion.estudiante.materno} con CI: {inscripcion.id_inscripcion}"
+        )
+        self.sistema_repository.create_auditoria(auditoria_registro)
+        
         self.repository.commit()
 
     def _obtener_o_crear_estudiante(self, data: InscripcionFormularioDTO, colegio_id: int):
