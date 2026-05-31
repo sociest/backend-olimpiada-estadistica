@@ -50,4 +50,4 @@ class ConvocatoriaModel(Base):
         ),
     )
 
-    categorias = relationship("CategoriaModel", backref="convocatoria", cascade="all, delete")
+    categorias = relationship("CategoriaModel", back_populates="convocatoria", cascade="all, delete")
