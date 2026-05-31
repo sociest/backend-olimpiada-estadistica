@@ -113,3 +113,14 @@ class AvisoRepository:
     def delete(self, aviso: AvisoModel):
         self.db.delete(aviso)
         self.db.commit()
+    
+    def count_visibles(self) -> int:
+        ahora = datetime.now()
+        return (
+            self.db.query(func.count(AvisoModel.id_aviso))
+            .filter(
+                AvisoModel.estado == "PUBLICADO",
+                AvisoModel.fecha_publicacion <= ahora
+            )
+            .scalar()
+        )    
