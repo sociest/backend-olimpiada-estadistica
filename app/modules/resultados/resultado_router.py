@@ -15,7 +15,14 @@ from app.modules.resultados.resultado_schema import (
     ResultadoUpdateDTO
 )
 from app.modules.resultados.resultado_service import ResultadoService
-
+import os
+from fastapi import APIRouter, Depends, Query, UploadFile, File
+from fastapi.responses import StreamingResponse, FileResponse
+from sqlalchemy.orm import Session
+from app.modules.resultados.csv.schemas import AnalisisImportacionResponseDTO, ConfirmarImportacionDTO
+from app.modules.resultados.csv.service import CSVImportService, ERRORS_DIR
+from app.modules.resultados.csv.exporter import ExporterService
+from app.core.exceptions import NotFoundError
 
 router = APIRouter(prefix="/resultados", tags=["resultados"])
 
@@ -134,3 +141,75 @@ def ocultar_resultados_fase(
     service = ResultadoService(db)
     modificados = service.ocultar_fase(id_fase_prueba)
     return ResponseBase(data=modificados, message="Resultados de la fase ocultados correctamente")
+
+@router.post("/import-csv/analizar/{id_fase_prueba}", response_model=ResponseBase[AnalisisImportacionResponseDTO])
+async def analizar_csv_fase(
+    id_fase_prueba: int,
+    archivo: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_admin_id: int = Depends(get_current_admin)
+):
+    service = CSVImportService(db)
+    analisis = await service.analizar_csv(id_fase_prueba, archivo)
+    return ResponseBase(data=analisis, message="CSV analizado correctamente.")
+
+@router.post("/import-csv/{id_fase_prueba}", response_model=ResponseBase[dict])
+def importar_csv_definitivo(
+    id_fase_prueba: int,
+    payload: ConfirmarImportacionDTO,
+    db: Session = Depends(get_db),
+    current_admin_id: int = Depends(get_current_admin)
+):
+    service = CSVImportService(db)
+    resultado = service.procesar_importacion(id_fase_prueba, payload)
+    return ResponseBase(data=resultado, message="Importación masiva completada correctamente.")
+
+@router.get("/import-csv/download/{filename}")
+def descargar_csv_errores(
+    filename: str, 
+    current_admin_id: int = Depends(get_current_admin)
+):
+    ruta_archivo = os.path.join(ERRORS_DIR, filename)
+    if not os.path.exists(ruta_archivo):
+        raise NotFoundError("Archivo de errores no encontrado o expirado.")
+    
+    return FileResponse(
+        path=ruta_archivo, 
+        filename=filename, 
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@router.get("/export/csv/{id_fase_prueba}")
+def exportar_fase_csv(
+    id_fase_prueba: int,
+    estado_aprobacion: Literal["APROBADO", "REPROBADO", "TODOS"] = "TODOS",
+    incluir_nombres: bool = False,
+    db: Session = Depends(get_db),
+    current_admin_id: int = Depends(get_current_admin)
+):
+    service = ExporterService(db)
+    archivo_csv = service.export_csv(id_fase_prueba, estado_aprobacion, incluir_nombres)
+    
+    return StreamingResponse(
+        iter([archivo_csv.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=resultados_fase_{id_fase_prueba}.csv"}
+    )
+
+@router.get("/export/pdf/{id_fase_prueba}")
+def exportar_fase_pdf(
+    id_fase_prueba: int,
+    estado_aprobacion: Literal["APROBADO", "REPROBADO", "TODOS"] = "TODOS",
+    incluir_nombres: bool = False,
+    db: Session = Depends(get_db),
+    current_admin_id: int = Depends(get_current_admin)
+):
+    service = ExporterService(db)
+    archivo_pdf = service.export_pdf(id_fase_prueba, estado_aprobacion, incluir_nombres)
+    
+    return StreamingResponse(
+        archivo_pdf, 
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=resultados_fase_{id_fase_prueba}.pdf"}
+    )

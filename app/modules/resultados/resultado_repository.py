@@ -6,7 +6,10 @@ from app.modules.resultados.resultado_model import ResultadoModel
 from app.modules.inscripciones.inscripcion_model import InscripcionModel
 from app.modules.estudiantes.estudiante_model import EstudianteModel
 from app.modules.fases.fase_model import FasePruebaModel
-
+from sqlalchemy.orm import joinedload
+from app.modules.categorias.categoria_model import CategoriaModel
+from app.modules.convocatorias.convocatoria_model import ConvocatoriaModel
+from app.modules.fases.fase_model import FaseModel
 
 class ResultadoRepository:
     def __init__(self, db: Session):
@@ -141,3 +144,67 @@ class ResultadoRepository:
     def delete(self, resultado: ResultadoModel):
         self.db.delete(resultado)
         self.db.commit()
+        
+    def get_fase_context_for_export(self, id_fase_prueba: int):
+        return (
+            self.db.query(FasePruebaModel, FaseModel, CategoriaModel, ConvocatoriaModel)
+            .join(FaseModel, FasePruebaModel.id_fase == FaseModel.id_fase)
+            .join(CategoriaModel, FaseModel.id_categoria_fk == CategoriaModel.id_categoria)
+            .join(ConvocatoriaModel, CategoriaModel.id_convocatoria == ConvocatoriaModel.id_convocatoria)
+            .filter(FasePruebaModel.id_fase == id_fase_prueba)
+            .first()
+        )
+
+    def get_export_data(self, id_fase_prueba: int, estado_aprobacion: str = "TODOS"):
+        query = (
+            self.db.query(
+                EstudianteModel.carnet_identidad,
+                EstudianteModel.nombres,
+                EstudianteModel.paterno,
+                EstudianteModel.materno,
+                ResultadoModel.nota.label("resultado")
+            )
+            .join(InscripcionModel, ResultadoModel.id_inscripcion == InscripcionModel.id_inscripcion)
+            .join(EstudianteModel, InscripcionModel.id_estudiante == EstudianteModel.id_estudiante)
+            .join(FasePruebaModel, ResultadoModel.id_fase_prueba == FasePruebaModel.id_fase)
+            .filter(ResultadoModel.id_fase_prueba == id_fase_prueba)
+        )
+
+        if estado_aprobacion == "APROBADO":
+            query = query.filter(ResultadoModel.nota >= FasePruebaModel.criterio_aprobacion)
+        elif estado_aprobacion == "REPROBADO":
+            query = query.filter(ResultadoModel.nota < FasePruebaModel.criterio_aprobacion)
+
+        query = query.order_by(EstudianteModel.paterno.asc(), EstudianteModel.materno.asc(), EstudianteModel.nombres.asc())
+        return query.all()
+
+    def get_contexto_importacion(self, id_fase_prueba: int):
+        fase_info = (
+            self.db.query(FasePruebaModel, FaseModel)
+            .join(FaseModel, FasePruebaModel.id_fase == FaseModel.id_fase)
+            .filter(FasePruebaModel.id_fase == id_fase_prueba)
+            .first()
+        )
+        
+        if not fase_info:
+            return None, None, None
+            
+        fase_prueba, fase_base = fase_info
+        id_categoria = fase_base.id_categoria_fk
+
+        inscripciones_raw = (
+            self.db.query(InscripcionModel, EstudianteModel.carnet_identidad)
+            .join(EstudianteModel, InscripcionModel.id_estudiante == EstudianteModel.id_estudiante)
+            .filter(InscripcionModel.id_categoria == id_categoria)
+            .all()
+        )
+        dict_inscripciones = {ci: inscripcion for inscripcion, ci in inscripciones_raw}
+
+        resultados_raw = (
+            self.db.query(ResultadoModel.id_inscripcion, ResultadoModel.nota)
+            .filter(ResultadoModel.id_fase_prueba == id_fase_prueba)
+            .all()
+        )
+        dict_resultados_existentes = {res.id_inscripcion: res.nota for res in resultados_raw}
+
+        return id_categoria, dict_inscripciones, dict_resultados_existentes
