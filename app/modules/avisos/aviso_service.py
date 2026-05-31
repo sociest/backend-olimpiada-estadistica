@@ -46,11 +46,6 @@ class AvisoService:
         aviso = AvisoModel(**data.model_dump())
         aviso.estado = "BORRADOR"
         created_aviso = self.repository.create(aviso)
-        self.auth_repository.create_auditoria(
-            admin_id=current_admin_id,
-            accion="CREAR_AVISO",
-            descripcion=f"Aviso creado: {created_aviso.titulo}",
-        )
         return self._with_estado_temporal(created_aviso)
 
     def update(self, aviso_id: int, data: AvisoUpdateDTO, current_admin_id: int):
@@ -60,11 +55,6 @@ class AvisoService:
             setattr(aviso, key, value)
           
         updated_aviso = self.repository.update(aviso)
-        self.auth_repository.create_auditoria(
-            admin_id=current_admin_id,
-            accion="ACTUALIZAR_AVISO",
-            descripcion=f"Aviso actualizado: {updated_aviso.titulo}",
-        )
         return self._with_estado_temporal(updated_aviso)
 
     def cambiar_estado(
@@ -88,22 +78,12 @@ class AvisoService:
             )
         aviso.estado = nuevo_estado
         updated_aviso = self.repository.update(aviso)
-        self.auth_repository.create_auditoria(
-            admin_id=current_admin_id,
-            accion="CAMBIAR_ESTADO_AVISO",
-            descripcion=f"Estado de aviso '{aviso.titulo}' cambiado a {aviso.estado}",
-        )
         return self._with_estado_temporal(updated_aviso)
 
     def delete(self, aviso_id: int, current_admin_id: int):
         aviso = self._get_model_by_id(aviso_id)
         deleted = self._with_estado_temporal(aviso)
         self.repository.delete(aviso)
-        self.auth_repository.create_auditoria(
-            admin_id=current_admin_id,
-            accion="ELIMINAR_AVISO",
-            descripcion=f"Aviso eliminado: {deleted['titulo']}",
-        )
         return deleted
 
     def _with_estado_temporal(self, aviso: AvisoModel):

@@ -30,14 +30,3 @@ class AuthRepository:
         self.db.commit()
         self.db.refresh(admin)
         return admin
-
-    def create_auditoria(self, admin_id: int, accion: str, descripcion: str | None = None):
-        auditoria = AuditoriaModel(
-            id_administrador=admin_id,
-            accion=accion,
-            descripcion=descripcion,
-        )
-        self.db.add(auditoria)
-        self.db.commit()
-        self.db.refresh(auditoria)
-        return auditoria

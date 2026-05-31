@@ -11,13 +11,3 @@ class AdministradorModel(Base):
     correo = Column(String(255), nullable=False, unique=True, index=True)
     contrasena = Column(String(255), nullable=False)
     estado = Column(String(20), nullable=False, default="ACTIVO", server_default=text("'ACTIVO'"))
-
-
-class AuditoriaModel(Base):
-    __tablename__ = "auditoria"
-
-    id_auditoria = Column(Integer, primary_key=True, index=True)
-    id_administrador = Column(Integer, ForeignKey("administrador.id_administrador"), nullable=False)
-    accion = Column(String(100), nullable=False)
-    descripcion = Column(Text, nullable=True)
-    fecha = Column(DateTime, nullable=False, server_default=func.now())
