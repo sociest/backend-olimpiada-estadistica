@@ -2,6 +2,7 @@ from datetime import date
 from typing import Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_, extract
+from app.modules.categorias.categoria_model import NivelEducativo
 from app.modules.estudiantes.estudiante_model import EstudianteModel
 from app.modules.personas.persona_model import PersonaModel
 
@@ -40,7 +41,7 @@ class EstudianteRepository:
         rude: Optional[str] = None,
         mes_nacimiento: Optional[int] = None,
         anio_nacimiento: Optional[int] = None,
-        nivel: Optional[str] = None,
+        nivel: Optional[NivelEducativo] = None,
         curso: Optional[int] = None,
         id_colegio: Optional[int] = None
     ):

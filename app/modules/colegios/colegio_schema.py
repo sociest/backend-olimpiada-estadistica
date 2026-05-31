@@ -1,31 +1,33 @@
 from typing import Optional, List
 from pydantic import BaseModel, ConfigDict
+
+from app.modules.colegios.colegio_model import EstadoColegio, TipoColegio, TurnoColegio
 from app.modules.personas.persona_schema import DirectorResponseDTO
 
 class ColegioBaseDTO(BaseModel):
     codigo: int
     nombre: str
-    tipo: str
-    turno: str
+    tipo: TipoColegio
+    turno: TurnoColegio
     departamento: str
     municipio: str
     calle: Optional[str] = None
-    estado: str
+    estado: EstadoColegio
 
 
 class ColegioCreateDTO(ColegioBaseDTO):
-    estado: Optional[str] = None 
+    estado: Optional[EstadoColegio] = None 
 
 
 class ColegioUpdateDTO(BaseModel):
     codigo: Optional[int] = None
     nombre: Optional[str] = None
-    tipo: Optional[str] = None
-    turno: Optional[str] = None
+    tipo: Optional[TipoColegio] = None
+    turno: Optional[TurnoColegio] = None
     departamento: Optional[str] = None
     municipio: Optional[str] = None
     calle: Optional[str] = None
-    estado: Optional[str] = None
+    estado: Optional[EstadoColegio] = None
 
 
 class ColegioResponseDTO(ColegioBaseDTO):
@@ -48,12 +50,12 @@ class DirectorCSVImportDTO(BaseModel):
 class ColegioCSVImportDTO(BaseModel):
     codigo: int
     nombre: str
-    tipo: str
-    turno: str
+    tipo: TipoColegio
+    turno: TurnoColegio
     departamento: str
     municipio: str
     calle: Optional[str] = None
-    estado: str
+    estado: EstadoColegio
     directores: List[DirectorCSVImportDTO]
 
 

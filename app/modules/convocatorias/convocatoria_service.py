@@ -75,7 +75,7 @@ class ConvocatoriaService:
             raise NotFoundError("Convocatoria no encontrada")
         return self._map_response(convocatoria)
 
-    def get_all(self, page: int, limit: int, estado: str = None, estado_temporal: str = None, start_date: datetime = None, end_date: datetime = None):
+    def get_all(self, page: int, limit: int, estado: EstadoConvocatoria = None, estado_temporal: EstadoTemporal = None, start_date: datetime = None, end_date: datetime = None):
         skip = (page - 1) * limit
         items, total = self.repository.get_all(skip, limit, estado, start_date, end_date)
         

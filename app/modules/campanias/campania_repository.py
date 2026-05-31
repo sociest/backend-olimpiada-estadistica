@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import or_
 from typing import Optional
 from datetime import datetime
-from app.modules.campanias.campania_model import CampaniaEmail, CampaniaDestinatario
+from app.modules.campanias.campania_model import CampaniaEmail, CampaniaDestinatario, EstadoCampania
 
 class CampaniaRepository:
     def __init__(self, db: Session):
@@ -14,7 +14,7 @@ class CampaniaRepository:
             .selectinload(CampaniaDestinatario.estudiante)
         )
 
-    def get_all(self, skip: int, limit: int, nombre: Optional[str], asunto: Optional[str], estado: Optional[str],
+    def get_all(self, skip: int, limit: int, nombre: Optional[str], asunto: Optional[str], estado: Optional[EstadoCampania],
                 creacion_start: Optional[datetime], creacion_end: Optional[datetime],
                 prog_start: Optional[datetime], prog_end: Optional[datetime],
                 inicio_start: Optional[datetime], inicio_end: Optional[datetime],

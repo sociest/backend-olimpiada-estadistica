@@ -4,7 +4,9 @@ from app.core.exceptions import NotFoundError
 from app.modules.personas.persona_model import (
     ColaboradorModel,
     DirectorModel,
+    EstadoPersona,
     PersonaModel,
+    TipoColaborador,
 )
 from app.modules.personas.persona_repository import PersonaRepository
 from app.modules.personas.persona_schema import (
@@ -45,7 +47,7 @@ class PersonaService:
         return items, total
 
 
-    def get_personal_by_tipo(self, tipo: str, page: int, limit: int):
+    def get_personal_by_tipo(self, tipo: TipoColaborador | str, page: int, limit: int):
         skip = (page - 1) * limit
         if tipo == "DIRECTOR":
             rows = self.repository.list_directores(skip=skip, limit=limit)
@@ -84,7 +86,7 @@ class PersonaService:
         ]
         return items, total
 
-    def get_colaboradores_activos_by_tipo(self, tipo: str, page: int, limit: int):
+    def get_colaboradores_activos_by_tipo(self, tipo: TipoColaborador, page: int, limit: int):
         skip = (page - 1) * limit
         rows = self.repository.list_colaboradores_activos_by_tipo(tipo, skip=skip, limit=limit)
         total = self.repository.count_colaboradores_activos_by_tipo(tipo)
@@ -177,7 +179,7 @@ class PersonaService:
 
     def delete_director_logic(self, director_id: int, current_admin_id: int):
         director, persona = self.get_director_by_id(director_id)
-        persona.estado = "INACTIVO" 
+        persona.estado = EstadoPersona.INACTIVO 
         self.repository.update_director(director, persona)
         self._auditar(
             current_admin_id,
@@ -195,7 +197,7 @@ class PersonaService:
 
     def alta_director_logic(self, director_id: int, current_admin_id: int):
         director, persona = self.get_director_by_id(director_id)
-        persona.estado = "ACTIVO"
+        persona.estado = EstadoPersona.ACTIVO
         self.repository.update_director(director, persona)
         self._auditar(
             current_admin_id,
@@ -287,7 +289,7 @@ class PersonaService:
         colaborador = self.repository.get_colaborador_by_id(colaborador_id)
         if not colaborador:
             raise BusinessRuleError("Colaborador no encontrado")
-        colaborador.persona.estado = "INACTIVO"
+        colaborador.persona.estado = EstadoPersona.INACTIVO
         self.repository.update_colaborador()
         if current_admin_id is not None:
             self._auditar(
@@ -302,7 +304,7 @@ class PersonaService:
         colaborador = self.repository.get_colaborador_by_id(colaborador_id)
         if not colaborador:
             raise BusinessRuleError("Colaborador no encontrado")
-        colaborador.persona.estado = "ACTIVO"
+        colaborador.persona.estado = EstadoPersona.ACTIVO
         self.repository.update_colaborador()
         if current_admin_id is not None:
             self._auditar(
@@ -330,7 +332,7 @@ class PersonaService:
             raise BusinessRuleError("Colaborador no encontrado")
         return colaborador
 
-    def list_colaboradores(self, page: int, limit: int, nombre: str | None, correo: str | None, tipo: str | None, rol: str | None, estado: str | None):
+    def list_colaboradores(self, page: int, limit: int, nombre: str | None, correo: str | None, tipo: TipoColaborador | None, rol: str | None, estado: EstadoPersona | None):
         skip = (page - 1) * limit
         items, total = self.repository.list_colaboradores_advanced(skip, limit, nombre, correo, tipo, rol, estado)
         return [self._format_response(i) for i in items], total
@@ -346,7 +348,7 @@ class PersonaService:
             "rol": c.rol,
             "tipo": c.tipo,
             "correo": c.correo,
-            "estado": c.persona.estado if c.persona else "ACTIVO"
+            "estado": c.persona.estado if c.persona else EstadoPersona.ACTIVO
         }
 
     def _auditar(self, current_admin_id: int, accion: TipoAccion, modulo: TipoModulo, descripcion: str):

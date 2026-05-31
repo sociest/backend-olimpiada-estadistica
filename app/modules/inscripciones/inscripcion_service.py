@@ -2,10 +2,10 @@ from datetime import date, datetime
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from app.core.exceptions import BusinessRuleError, ConflictError, NotFoundError
-from app.modules.inscripciones.inscripcion_model import InscripcionModel
+from app.modules.inscripciones.inscripcion_model import EstadoInscripcion, InscripcionModel
 from app.modules.inscripciones.inscripcion_repository import InscripcionRepository
 from app.modules.inscripciones.inscripcion_schema import InscripcionFormularioDTO, InscripcionAdminCreateDTO, InscripcionEstadoUpdateDTO
-from app.modules.personas.persona_model import PersonaModel
+from app.modules.personas.persona_model import EstadoPersona, PersonaModel
 from app.modules.estudiantes.estudiante_model import EstudianteModel
 from typing import Optional
 import csv
@@ -64,7 +64,7 @@ class InscripcionService:
             response["ya_inscrito"] = True
             response["id_inscripcion"] = inscripcion.id_inscripcion
         
-        if persona.estado == "INACTIVO":
+        if persona.estado == EstadoPersona.INACTIVO:
             response["mensaje_inactividad"] = "El estudiante tiene su cuenta inactiva."
             response["inactividad"] = True
 
@@ -100,7 +100,7 @@ class InscripcionService:
                 id_estudiante=estudiante.id_estudiante,
                 id_convocatoria=data.id_convocatoria,
                 id_categoria=categoria.id_categoria,
-                estado="PENDIENTE",
+                estado=EstadoInscripcion.PENDIENTE,
             )
             self.repository.create_inscripcion(inscripcion)
             self.repository.commit()
@@ -143,14 +143,14 @@ class InscripcionService:
         if existente:
             raise ConflictError("Inscripción duplicada detectada para esta convocatoria")
         
-        if estudiante.estado == "INACTIVO":
+        if estudiante.estado == EstadoPersona.INACTIVO:
             raise BusinessRuleError("El estudiante tiene su cuenta inactiva")
 
         nueva_inscripcion = InscripcionModel(
             id_estudiante=data.id_estudiante,
             id_convocatoria=data.id_convocatoria,
             id_categoria=data.id_categoria,
-            estado="PENDIENTE"
+            estado=EstadoInscripcion.PENDIENTE
         )
         
         self.repository.create_inscripcion(nueva_inscripcion)
@@ -167,7 +167,7 @@ class InscripcionService:
 
     def list_all(
         self, page: int, limit: int, id_colegio: Optional[int] = None, id_categoria: Optional[int] = None,
-        estado: Optional[str] = None, search_nombre: Optional[str] = None, search_documento: Optional[str] = None,
+        estado: Optional[EstadoInscripcion] = None, search_nombre: Optional[str] = None, search_documento: Optional[str] = None,
         fecha_inicio: Optional[datetime] = None, fecha_fin: Optional[datetime] = None
     ):
         skip = (page - 1) * limit
@@ -183,8 +183,6 @@ class InscripcionService:
 
     def actualizar_estado(self, inscripcion_id: int, data: InscripcionEstadoUpdateDTO, current_admin_id: int):
         inscripcion = self.obtener_por_id(inscripcion_id)
-        if data.estado not in ["APROBADO", "RECHAZADO", "PENDIENTE"]:
-            raise BusinessRuleError("Estado de inscripcion invalido")
         estado_anterior = inscripcion.estado
         inscripcion.estado = data.estado
         self.repository.commit()

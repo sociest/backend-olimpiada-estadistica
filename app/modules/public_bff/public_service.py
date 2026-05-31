@@ -1,10 +1,13 @@
 import asyncio
+from typing import Literal
 
 from app.modules.avisos.aviso_service import AvisoService
 from app.modules.categorias.categoria_service import CategoriaService
 from app.modules.convocatorias.convocatoria_service import ConvocatoriaService
 from app.modules.fases.fase_service import FaseService
+from app.modules.materiales.material_model import TipoMaterialEnum
 from app.modules.materiales.material_service import MaterialService
+from app.modules.personas.persona_model import TipoColaborador
 from app.modules.personas.persona_service import PersonaService
 from app.modules.colegios.colegio_service import ColegioService
 
@@ -61,7 +64,7 @@ class PublicBffService:
             "avisos": self._format_avisos(avisos or []),
         }
 
-    async def get_personal(self, tipo: str):
+    async def get_personal(self, tipo: TipoColaborador | Literal["DIRECTOR"]):
         try:
             items, _ = await asyncio.to_thread(
                 self.persona_service.get_personal_by_tipo, tipo, 1, 1000
@@ -70,7 +73,7 @@ class PublicBffService:
             return []
         return items or []
     
-    async def get_colaboradores_activos_by_tipo(self, tipo: str):
+    async def get_colaboradores_activos_by_tipo(self, tipo: TipoColaborador):
         try:
             items, _ = await asyncio.to_thread(
                 self.persona_service.get_colaboradores_activos_by_tipo, tipo, 1, 1000
@@ -97,17 +100,17 @@ class PublicBffService:
         afiche_task = asyncio.to_thread(
             self._safe_get_material_principal_public,
             convocatoria_id,
-            "AFICHE",
+            TipoMaterialEnum.AFICHE,
         )
         convocatoria_doc_task = asyncio.to_thread(
             self._safe_get_material_principal_public,
             convocatoria_id,
-            "CONVOCATORIA",
+            TipoMaterialEnum.CONVOCATORIA,
         )
         reglamento_task = asyncio.to_thread(
             self._safe_get_material_principal_public,
             convocatoria_id,
-            "REGLAMENTO",
+            TipoMaterialEnum.REGLAMENTO,
         )
         categorias, materiales_data, afiche, convocatoria_doc, reglamento = await asyncio.gather(
             categorias_task,
@@ -157,7 +160,7 @@ class PublicBffService:
         except Exception:
             return None
 
-    def _safe_get_material_principal_public(self, convocatoria_id: int, importancia_tipo: str):
+    def _safe_get_material_principal_public(self, convocatoria_id: int, importancia_tipo: TipoMaterialEnum):
         try:
             return self.material_service.get_material_principal_public(convocatoria_id, importancia_tipo)
         except Exception:

@@ -7,6 +7,7 @@ from app.modules.categorias.categoria_model import CategoriaModel
 from app.modules.colegios.colegio_model import ColegioModel
 from app.modules.convocatorias.convocatoria_model import ConvocatoriaModel
 from app.modules.inscripciones.inscripcion_model import InscripcionModel
+from app.modules.inscripciones.inscripcion_model import EstadoInscripcion
 from app.modules.estudiantes.estudiante_model import EstudianteModel
 from app.modules.personas.persona_model import PersonaModel
 
@@ -20,10 +21,10 @@ class InscripcionRepository:
     def get_categoria(self, categoria_id: int):
         return self.db.query(CategoriaModel).filter(CategoriaModel.id_categoria == categoria_id).first()
 
-    def buscar_categoria_automatica(self, convocatoria_id: int, curso: int, nivel: str):
+    def buscar_categoria_automatica(self, convocatoria_id: int, curso: int, nivel):
         return self.db.query(CategoriaModel).filter(
             CategoriaModel.id_convocatoria == convocatoria_id,
-            CategoriaModel.nivel.ilike(nivel),
+            CategoriaModel.nivel == nivel,
             CategoriaModel.curso == curso
         ).first()
 
@@ -82,7 +83,7 @@ class InscripcionRepository:
         limit: int,
         id_colegio: Optional[int] = None,
         id_categoria: Optional[int] = None,
-        estado: Optional[str] = None,
+        estado: Optional[EstadoInscripcion] = None,
         search_nombre: Optional[str] = None,
         search_documento: Optional[str] = None,
         fecha_inicio: Optional[datetime] = None,
@@ -119,9 +120,9 @@ class InscripcionRepository:
             )
 
         orden_ponderado = case(
-            (InscripcionModel.estado == "PENDIENTE", 1),
-            (InscripcionModel.estado == "APROBADO", 2),
-            (InscripcionModel.estado == "RECHAZADO", 3),
+            (InscripcionModel.estado == EstadoInscripcion.PENDIENTE, 1),
+            (InscripcionModel.estado == EstadoInscripcion.APROBADO, 2),
+            (InscripcionModel.estado == EstadoInscripcion.RECHAZADO, 3),
             else_=4
         )
         
@@ -161,10 +162,10 @@ class InscripcionRepository:
             self.db.query(
                 func.count(InscripcionModel.id_inscripcion).label("total"),
                 func.sum(
-                    case((InscripcionModel.estado == "APROBADO", 1), else_=0)
+                    case((InscripcionModel.estado == EstadoInscripcion.APROBADO, 1), else_=0)
                 ).label("aprobados"),
                 func.sum(
-                    case((InscripcionModel.estado == "PENDIENTE", 1), else_=0)
+                    case((InscripcionModel.estado == EstadoInscripcion.PENDIENTE, 1), else_=0)
                 ).label("pendientes"),
             )
             .filter(InscripcionModel.id_convocatoria == convocatoria_id)

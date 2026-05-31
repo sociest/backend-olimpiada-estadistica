@@ -22,7 +22,7 @@ class PersonaModel(Base):
     nombres = Column(String(255), nullable=False)
     paterno = Column(String(255), nullable=False)
     materno = Column(String(255), nullable=True)
-    estado = Column(Enum(EstadoPersona, name="estado_persona"), nullable=False, default=EstadoPersona.ACTIVO)
+    estado = Column(Enum(EstadoPersona, name="estado_persona", values_callable=lambda enum: [item.value for item in enum]), nullable=False, default=EstadoPersona.ACTIVO)
 
 class DirectorModel(Base):
     __tablename__ = "director"
@@ -59,7 +59,7 @@ class ColaboradorModel(Base):
     perfil = Column(String(255), nullable=True)
     presentacion = Column(Text, nullable=True)
     rol = Column(String(100), nullable=False)
-    tipo = Column(Enum(TipoColaborador, name="tipo_colaborador"), nullable=False)
+    tipo = Column(Enum(TipoColaborador, name="tipo_colaborador", values_callable=lambda enum: [item.value for item in enum]), nullable=False)
     correo = Column(String(255), nullable=False)
 
     persona = relationship("PersonaModel")

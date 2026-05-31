@@ -12,7 +12,7 @@ class TipoColegio(str, enum.Enum):
 
 
 class TurnoColegio(str, enum.Enum):
-    MANANA = "MAÃ‘ANA"
+    MANANA = "MAÑANA"
     TARDE = "TARDE"
     NOCHE = "NOCHE"
     MIXTO = "MIXTO"
@@ -31,10 +31,10 @@ class ColegioModel(Base):
     id_colegio = Column(Integer, primary_key=True, index=True)
     codigo = Column(Integer, nullable=False, unique=True)
     nombre = Column(String(255), nullable=False)
-    tipo = Column(Enum(TipoColegio, name="tipo_colegio"), nullable=False)
-    turno = Column(Enum(TurnoColegio, name="turno_colegio"), nullable=False)
+    tipo = Column(Enum(TipoColegio, name="tipo_colegio", values_callable=lambda enum: [item.value for item in enum]), nullable=False)
+    turno = Column(Enum(TurnoColegio, name="turno_colegio", values_callable=lambda enum: [item.value for item in enum]), nullable=False)
     departamento = Column(String(100), nullable=False)
     municipio = Column(String(100), nullable=False)
     calle = Column(String(255), nullable=True)
-    estado = Column(Enum(EstadoColegio, name="estado_colegio"), nullable=False, default=EstadoColegio.PENDIENTE)
+    estado = Column(Enum(EstadoColegio, name="estado_colegio", values_callable=lambda enum: [item.value for item in enum]), nullable=False, default=EstadoColegio.PENDIENTE)
     directores = relationship("DirectorModel", back_populates="colegio")

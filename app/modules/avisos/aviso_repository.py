@@ -2,7 +2,7 @@ from datetime import datetime
 from sqlalchemy import case, func
 from sqlalchemy.orm import Session
 
-from app.modules.avisos.aviso_model import AvisoModel
+from app.modules.avisos.aviso_model import AvisoModel, AvisoPrioridad, EstadoAviso
 
 
 class AvisoRepository:
@@ -33,7 +33,7 @@ class AvisoRepository:
         return (
             self.db.query(AvisoModel)
             .filter(AvisoModel.id_aviso == aviso_id)
-            .filter(AvisoModel.estado == "PUBLICADO")
+            .filter(AvisoModel.estado == EstadoAviso.PUBLICADO)
             .filter(AvisoModel.fecha_publicacion.isnot(None))
             .filter(AvisoModel.fecha_publicacion <= datetime.utcnow())
             .first()
@@ -53,7 +53,7 @@ class AvisoRepository:
         query = self.db.query(AvisoModel)
         query = self._apply_filters(query, filters)
         query = (
-            query.filter(AvisoModel.estado == "PUBLICADO")
+            query.filter(AvisoModel.estado == EstadoAviso.PUBLICADO)
             .filter(AvisoModel.fecha_publicacion.isnot(None))
             .filter(AvisoModel.fecha_publicacion <= datetime.utcnow())
         )
@@ -63,7 +63,7 @@ class AvisoRepository:
         query = self.db.query(AvisoModel)
         query = self._apply_filters(query, filters)
         return (
-            query.filter(AvisoModel.estado == "PUBLICADO")
+            query.filter(AvisoModel.estado == EstadoAviso.PUBLICADO)
             .filter(AvisoModel.fecha_publicacion.isnot(None))
             .filter(AvisoModel.fecha_publicacion <= datetime.utcnow())
             .count()
@@ -71,14 +71,14 @@ class AvisoRepository:
 
     def get_all_public_for_inicio(self):
         prioridad_order = case(
-            (AvisoModel.prioridad == 'ALTA', 1),
-            (AvisoModel.prioridad == 'MEDIA', 2),
-            (AvisoModel.prioridad == 'BAJA', 3),
+            (AvisoModel.prioridad == AvisoPrioridad.ALTA, 1),
+            (AvisoModel.prioridad == AvisoPrioridad.MEDIA, 2),
+            (AvisoModel.prioridad == AvisoPrioridad.BAJA, 3),
             else_=4
         )
         return (
             self.db.query(AvisoModel)
-            .filter(AvisoModel.estado == "PUBLICADO")
+            .filter(AvisoModel.estado == EstadoAviso.PUBLICADO)
             .filter(AvisoModel.fecha_publicacion.isnot(None))
             .filter(AvisoModel.fecha_publicacion <= datetime.utcnow())
             .order_by(
@@ -91,7 +91,7 @@ class AvisoRepository:
     def get_recent_public(self, limit: int):
         return (
             self.db.query(AvisoModel)
-            .filter(AvisoModel.estado == "PUBLICADO")
+            .filter(AvisoModel.estado == EstadoAviso.PUBLICADO)
             .filter(AvisoModel.fecha_publicacion.isnot(None))
             .filter(AvisoModel.fecha_publicacion <= datetime.utcnow())
             .order_by(AvisoModel.fecha_publicacion.desc())
@@ -119,7 +119,7 @@ class AvisoRepository:
         return (
             self.db.query(func.count(AvisoModel.id_aviso))
             .filter(
-                AvisoModel.estado == "PUBLICADO",
+                AvisoModel.estado == EstadoAviso.PUBLICADO,
                 AvisoModel.fecha_publicacion <= ahora
             )
             .scalar()

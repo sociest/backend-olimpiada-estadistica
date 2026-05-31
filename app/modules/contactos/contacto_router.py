@@ -10,6 +10,7 @@ from app.modules.contactos.contacto_schema import (
     ContactoCreateDTO, ContactoRequestDTO, ContactoResponseDTO, 
     ContactoCompletoResponseDTO, ContactoRespuestaCreateDTO
 )
+from app.modules.contactos.contacto_model import EstadoContacto
 from app.modules.contactos.contacto_service import ContactoService
 from app.modules.email_logs.email_log_model import EstadoEmail
 
@@ -31,7 +32,7 @@ def listar_contactos(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=100),
     correo_electronico: Optional[str] = None,
-    estado: Optional[str] = None,
+    estado: Optional[EstadoContacto] = None,
     creacion_start: Optional[datetime] = None,
     creacion_end: Optional[datetime] = None,
     cambio_start: Optional[datetime] = None,

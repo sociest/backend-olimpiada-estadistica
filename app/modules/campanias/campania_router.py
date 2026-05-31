@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from datetime import datetime
 from app.db.database import get_db
+from app.modules.campanias.campania_model import EstadoCampania
 from app.modules.campanias.campania_schema import CampaniaCreateDTO, CampaniaUpdateDTO, CampaniaResponseDTO, EstadoUpdateDTO
 from app.modules.campanias.campania_service import CampaniaService
 from app.core.responses import ResponseBase, PaginatedResponse, PaginationMeta
@@ -16,7 +17,7 @@ def listar_campanias(
     limit: int = Query(10, ge=1, le=100),
     nombre: Optional[str] = None,
     asunto: Optional[str] = None,
-    estado: Optional[str] = None,
+    estado: Optional[EstadoCampania] = None,
     creacion_start: Optional[datetime] = None,
     creacion_end: Optional[datetime] = None,
     prog_start: Optional[datetime] = None,

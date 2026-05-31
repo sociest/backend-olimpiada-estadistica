@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_
 
-from app.modules.colegios.colegio_model import ColegioModel
+from app.modules.colegios.colegio_model import ColegioModel, EstadoColegio
 from app.modules.personas.persona_model import PersonaModel, DirectorModel
 
 class ColegioRepository:
@@ -64,7 +64,7 @@ class ColegioRepository:
         self.db.refresh(colegio)
         return colegio
 
-    def update_estado(self, colegio: ColegioModel, estado: str):
+    def update_estado(self, colegio: ColegioModel, estado: EstadoColegio):
         colegio.estado = estado
         self.db.commit()
         self.db.refresh(colegio)

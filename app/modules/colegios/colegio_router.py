@@ -8,6 +8,7 @@ from app.core.dependencies import get_current_admin
 from app.core.exceptions import NotFoundError
 from app.core.responses import PaginatedData, PaginatedResponse, PaginationMeta, ResponseBase
 from app.db.database import get_db
+from app.modules.colegios.colegio_model import EstadoColegio, TipoColegio, TurnoColegio
 from app.modules.colegios.colegio_schema import ColegioCreateDTO, ColegioResponseDTO, ColegioUpdateDTO, ColegioDetailResponseDTO
 from app.modules.colegios.colegio_service import ColegioService
 from app.modules.colegios.colegio_schema import CSVImportDBResponseDTO, CSVUploadResponseDTO, ColegioCSVImportDTO
@@ -21,9 +22,9 @@ def listar_colegios(
     page: int = 1, limit: int = 10,
     nombre: Optional[str] = None,
     municipio: Optional[str] = None,
-    estado: Optional[str] = None,
-    tipo: Optional[str] = None,
-    turno: Optional[str] = None,
+    estado: Optional[EstadoColegio] = None,
+    tipo: Optional[TipoColegio] = None,
+    turno: Optional[TurnoColegio] = None,
     director_nombre: Optional[str] = None,
     db: Session = Depends(get_db),
     current_admin_id: int = Depends(get_current_admin)

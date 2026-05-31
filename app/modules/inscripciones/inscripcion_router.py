@@ -11,6 +11,7 @@ from app.modules.inscripciones.inscripcion_schema import (
     InscripcionAdminCreateDTO, InscripcionEstadoUpdateDTO, ExportarInscripcionesRequestDTO
 )
 from app.modules.inscripciones.inscripcion_service import InscripcionService
+from app.modules.inscripciones.inscripcion_model import EstadoInscripcion
 from fastapi.responses import StreamingResponse
 
 router = APIRouter(prefix="/inscripciones", tags=["inscripciones"])
@@ -44,7 +45,7 @@ def listar_inscripciones_panel(
     limit: int = 10,
     id_colegio: Optional[int] = Query(None),
     id_categoria: Optional[int] = Query(None),
-    estado: Optional[str] = Query(None),
+    estado: Optional[EstadoInscripcion] = Query(None),
     search_nombre: Optional[str] = Query(None),
     search_documento: Optional[str] = Query(None),
     fecha_inicio: Optional[datetime] = Query(None),

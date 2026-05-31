@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import or_
 from typing import Optional
 from datetime import datetime
-from app.modules.email_logs.email_log_model import EmailLog
+from app.modules.email_logs.email_log_model import EmailLog, EstadoEmail, TipoEmail
 
 class EmailLogRepository:
     def __init__(self, db: Session):
@@ -15,7 +15,7 @@ class EmailLogRepository:
             selectinload(EmailLog.campania)
         )
 
-    def get_all(self, skip: int, limit: int, tipo: Optional[str], estado: Optional[str], 
+    def get_all(self, skip: int, limit: int, tipo: Optional[TipoEmail], estado: Optional[EstadoEmail], 
                 id_campania: Optional[int], es_estudiante: Optional[bool], es_contacto: Optional[bool], es_campania: Optional[bool],
                 busqueda: Optional[str], creacion_start: Optional[datetime], creacion_end: Optional[datetime],
                 envio_start: Optional[datetime], envio_end: Optional[datetime],

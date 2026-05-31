@@ -8,6 +8,7 @@ from app.core.responses import ResponseBase
 from app.core.security import decode_access_token
 from app.db.database import get_db
 from app.modules.auth.auth_repository import AuthRepository
+from app.modules.auth.auth_model import EstadoAdministrador
 from app.modules.auth.auth_schema import (
     AdminCreateDTO,
     CambiarContrasenaDTO,
@@ -87,7 +88,7 @@ def _get_optional_current_admin_id(
         raise UnauthorizedError("Token invalido")
 
     admin = repository.get_admin_by_id(int(admin_id))
-    if not admin or admin.estado != "ACTIVO":
+    if not admin or admin.estado != EstadoAdministrador.ACTIVO:
         raise UnauthorizedError("No autorizado")
 
     return admin.id_administrador

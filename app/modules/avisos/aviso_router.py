@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_current_admin
 from app.core.responses import PaginatedData, PaginatedResponse, PaginationMeta, ResponseBase
 from app.db.database import get_db
+from app.modules.avisos.aviso_model import AvisoPrioridad, EstadoAviso, TipoAviso
 from app.modules.avisos.aviso_schema import AvisoCreateDTO, AvisoResponseDTO, AvisoUpdateDTO, AvisoEstadoUpdateDTO
 from app.modules.avisos.aviso_service import AvisoService
 
@@ -17,8 +18,8 @@ def listar_avisos_publicos(
     limit: int = Query(10, ge=1, le=100),
     titulo: Optional[str] = None,
     descripcion: Optional[str] = None,
-    tipo: Optional[str] = None,
-    prioridad: Optional[str] = None,
+    tipo: Optional[TipoAviso] = None,
+    prioridad: Optional[AvisoPrioridad] = None,
     fecha_creacion: Optional[date] = None,
     fecha_publicacion: Optional[date] = None,
     db: Session = Depends(get_db)
@@ -43,9 +44,9 @@ def listar_avisos_admin(
     limit: int = Query(10, ge=1, le=100),
     titulo: Optional[str] = None,
     descripcion: Optional[str] = None,
-    tipo: Optional[str] = None,
-    prioridad: Optional[str] = None,
-    estado: Optional[str] = None,
+    tipo: Optional[TipoAviso] = None,
+    prioridad: Optional[AvisoPrioridad] = None,
+    estado: Optional[EstadoAviso] = None,
     fecha_creacion: Optional[date] = None,
     fecha_publicacion: Optional[date] = None,
     db: Session = Depends(get_db),

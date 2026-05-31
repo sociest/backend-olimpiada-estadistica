@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.exceptions import AuthenticationError, BusinessRuleError, ConflictError, NotFoundError, UnauthorizedError, ValidationError
 from app.core.security import create_access_token, hash_password, verify_password
-from app.modules.auth.auth_model import AdministradorModel
+from app.modules.auth.auth_model import AdministradorModel, EstadoAdministrador
 from app.modules.auth.auth_repository import AuthRepository
 from app.modules.auth.auth_schema import AdminCreateDTO, CambiarContrasenaDTO, LoginDTO
 from app.modules.sistema.sistema_model import AuditoriaModel, TipoAccion, TipoModulo
@@ -19,7 +19,7 @@ class AuthService:
         admin = self.repository.get_admin_by_correo(data.correo)
         if not admin or not verify_password(data.contrasena, admin.contrasena):
             raise AuthenticationError("Credenciales invalidas")
-        if admin.estado != "ACTIVO":
+        if admin.estado != EstadoAdministrador.ACTIVO:
             raise AuthenticationError("Administrador inactivo")
 
         access_token = create_access_token(admin.id_administrador)
@@ -47,7 +47,7 @@ class AuthService:
             nombre=data.nombre,
             correo=data.correo,
             contrasena=hash_password(data.contrasena),
-            estado="ACTIVO",
+            estado=EstadoAdministrador.ACTIVO,
         )
         created_admin = self.repository.create_admin(admin)
 

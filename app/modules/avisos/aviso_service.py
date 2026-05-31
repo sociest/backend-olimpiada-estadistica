@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.exceptions import NotFoundError
 from app.modules.auth.auth_repository import AuthRepository
-from app.modules.avisos.aviso_model import AvisoModel
+from app.modules.avisos.aviso_model import AvisoModel, EstadoAviso
 from app.modules.avisos.aviso_repository import AvisoRepository
 from app.modules.avisos.aviso_schema import AvisoCreateDTO, AvisoUpdateDTO, AvisoEstadoUpdateDTO, AvisoResponseDTO
 from app.modules.sistema.sistema_model import AuditoriaModel, TipoAccion, TipoModulo
@@ -46,7 +46,7 @@ class AvisoService:
 
     def create(self, data: AvisoCreateDTO, current_admin_id: int):
         aviso = AvisoModel(**data.model_dump())
-        aviso.estado = "BORRADOR"
+        aviso.estado = EstadoAviso.BORRADOR
         created_aviso = self.repository.create(aviso)
         
         auditoria_registro = AuditoriaModel(
@@ -86,9 +86,9 @@ class AvisoService:
         estado_actual = aviso.estado
         nuevo_estado = data.estado
         transiciones_validas = {
-            "BORRADOR": ["PUBLICADO"],
-            "PUBLICADO": ["OCULTO"],
-            "OCULTO": ["PUBLICADO"],
+            EstadoAviso.BORRADOR: [EstadoAviso.PUBLICADO],
+            EstadoAviso.PUBLICADO: [EstadoAviso.OCULTO],
+            EstadoAviso.OCULTO: [EstadoAviso.PUBLICADO],
         }
 
         if nuevo_estado not in transiciones_validas.get(estado_actual, []):
@@ -129,14 +129,14 @@ class AvisoService:
         return data
 
     def _calculate_estado_temporal(self, aviso: AvisoModel) -> str:
-        if aviso.estado != "PUBLICADO":
+        if aviso.estado != EstadoAviso.PUBLICADO:
             return "NO_VISIBLE"
         if (
             aviso.fecha_publicacion
             and datetime.utcnow() < aviso.fecha_publicacion
         ):
             return "EN_ESPERA"
-        return "PUBLICADO"
+        return EstadoAviso.PUBLICADO.value
 
     def _get_model_by_id(self, aviso_id: int) -> AvisoModel:
         aviso = self.repository.get_by_id(aviso_id)

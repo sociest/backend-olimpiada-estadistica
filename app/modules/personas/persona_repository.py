@@ -3,7 +3,9 @@ from sqlalchemy import or_
 from app.modules.personas.persona_model import (
     ColaboradorModel,
     DirectorModel,
+    EstadoPersona,
     PersonaModel,
+    TipoColaborador,
 )
 
 
@@ -47,7 +49,7 @@ class PersonaRepository:
             .all()
         )
 
-    def list_colaboradores_by_tipo(self, tipo: str, skip: int, limit: int):
+    def list_colaboradores_by_tipo(self, tipo: TipoColaborador | str, skip: int, limit: int):
         return (
             self.db.query(ColaboradorModel, PersonaModel)
             .join(PersonaModel, ColaboradorModel.id_colaborador == PersonaModel.id_persona)
@@ -57,11 +59,11 @@ class PersonaRepository:
             .all()
         )
     
-    def list_colaboradores_activos_by_tipo(self, tipo: str, skip: int, limit: int):
+    def list_colaboradores_activos_by_tipo(self, tipo: TipoColaborador, skip: int, limit: int):
         return (
             self.db.query(ColaboradorModel, PersonaModel)
             .join(PersonaModel, ColaboradorModel.id_colaborador == PersonaModel.id_persona)
-            .filter(ColaboradorModel.tipo == tipo, PersonaModel.estado == "ACTIVO")
+            .filter(ColaboradorModel.tipo == tipo, PersonaModel.estado == EstadoPersona.ACTIVO)
             .offset(skip)
             .limit(limit)
             .all()
@@ -70,7 +72,7 @@ class PersonaRepository:
     def get_colaborador_by_id(self, colaborador_id: int):
         return self.db.query(ColaboradorModel).filter(ColaboradorModel.id_colaborador == colaborador_id).first()
 
-    def list_colaboradores_advanced(self, skip: int, limit: int, nombre: str = None, correo: str = None, tipo: str = None, rol: str = None, estado: str = None):
+    def list_colaboradores_advanced(self, skip: int, limit: int, nombre: str = None, correo: str = None, tipo: TipoColaborador | None = None, rol: str = None, estado: EstadoPersona | None = None):
         query = self.db.query(ColaboradorModel).join(PersonaModel)
         if nombre:
             search = f"%{nombre}%"
@@ -105,11 +107,11 @@ class PersonaRepository:
         self.db.delete(persona)
         self.db.commit()
 
-    def count_colaboradores_by_tipo(self, tipo: str):
+    def count_colaboradores_by_tipo(self, tipo: TipoColaborador | str):
         return self.db.query(ColaboradorModel).filter(ColaboradorModel.tipo == tipo).count()
 
-    def count_colaboradores_activos_by_tipo(self, tipo: str):
-        return self.db.query(ColaboradorModel).filter(ColaboradorModel.tipo == tipo, PersonaModel.estado == "ACTIVO").count()
+    def count_colaboradores_activos_by_tipo(self, tipo: TipoColaborador):
+        return self.db.query(ColaboradorModel).join(PersonaModel).filter(ColaboradorModel.tipo == tipo, PersonaModel.estado == EstadoPersona.ACTIVO).count()
 
     def count_colaboradores(self):
         return self.db.query(ColaboradorModel).count()
@@ -133,4 +135,4 @@ class PersonaRepository:
     def list_directores_minified(self):
         return self.db.query(PersonaModel.id_persona, PersonaModel.nombres, PersonaModel.paterno, PersonaModel.materno)\
             .join(DirectorModel, DirectorModel.id_director == PersonaModel.id_persona)\
-            .filter(PersonaModel.estado == "ACTIVO").all()
+            .filter(PersonaModel.estado == EstadoPersona.ACTIVO).all()

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
+from typing import Literal
 
 from app.core.responses import ResponseBase
 from app.db.database import get_db
@@ -10,6 +11,7 @@ from app.modules.convocatorias.convocatoria_service import ConvocatoriaService
 from app.modules.fases.fase_service import FaseService
 from app.modules.materiales.material_service import MaterialService
 from app.modules.personas.persona_service import PersonaService
+from app.modules.personas.persona_model import TipoColaborador
 from app.modules.public_bff.public_schema import (
     ConvocatoriaDetalleDTO,
     FasePreparacionPublicaDTO,
@@ -41,7 +43,7 @@ async def obtener_inicio(db: Session = Depends(get_db)):
 
 @router.get("/acerca-de/personal", response_model=ResponseBase[list])
 async def obtener_personal(
-    tipo: str,
+    tipo: TipoColaborador | Literal["DIRECTOR"],
     db: Session = Depends(get_db),
 ):
     service = _get_service(db)

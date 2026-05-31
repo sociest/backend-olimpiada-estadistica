@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import NotFoundError
-from app.modules.colegios.colegio_model import ColegioModel
+from app.modules.colegios.colegio_model import ColegioModel, EstadoColegio
 from app.modules.colegios.colegio_repository import ColegioRepository
 from app.modules.colegios.colegio_schema import ColegioCreateDTO, ColegioUpdateDTO, CSVImportErrorDTO
 from app.modules.colegios.csv.parser import parse_csv_colegios
@@ -31,7 +31,7 @@ class ColegioService:
     def create(self, data: ColegioCreateDTO, current_admin_id: int):
         colegio_data = data.model_dump(exclude_unset=True)
         if 'estado' not in colegio_data:
-            colegio_data['estado'] = 'REVISADO'
+            colegio_data['estado'] = EstadoColegio.REVISADO
         colegio = ColegioModel(**colegio_data)
         created = self.repository.create(colegio)
         self._auditar(
@@ -56,7 +56,7 @@ class ColegioService:
     
     def delete_logic(self, colegio_id: int, current_admin_id: int):
         colegio = self.get_by_id(colegio_id)
-        updated = self.repository.update_estado(colegio, "INACTIVO")
+        updated = self.repository.update_estado(colegio, EstadoColegio.INACTIVO)
         self._auditar(
             current_admin_id,
             TipoAccion.ACTUALIZAR,
@@ -66,7 +66,7 @@ class ColegioService:
 
     def alta_logic(self, colegio_id: int, current_admin_id: int):
         colegio = self.get_by_id(colegio_id)
-        updated = self.repository.update_estado(colegio, "REVISADO")
+        updated = self.repository.update_estado(colegio, EstadoColegio.REVISADO)
         self._auditar(
             current_admin_id,
             TipoAccion.ACTUALIZAR,

@@ -5,6 +5,7 @@ from app.core.dependencies import get_current_admin
 from app.core.responses import PaginatedData, PaginatedResponse, PaginationMeta, ResponseBase
 from app.db.database import get_db
 from typing import Optional
+from app.modules.personas.persona_model import EstadoPersona, TipoColaborador
 from app.modules.personas.persona_schema import (
     ColaboradorCreateDTO,
     ColaboradorResponseDTO,
@@ -79,9 +80,9 @@ def listar_colaboradores(
     limit: int = 10,
     nombre: Optional[str] = Query(None),
     correo: Optional[str] = Query(None),
-    tipo: Optional[str] = Query(None),
+    tipo: Optional[TipoColaborador] = Query(None),
     rol: Optional[str] = Query(None),
-    estado: Optional[str] = Query(None),
+    estado: Optional[EstadoPersona] = Query(None),
     db: Session = Depends(get_db)
 ):
     service = PersonaService(db)
@@ -116,7 +117,7 @@ def crear_colaborador(
     paterno: str = Form(...),
     materno: Optional[str] = Form(None),
     rol: str = Form(...),
-    tipo: str = Form(...),
+    tipo: TipoColaborador = Form(...),
     correo: str = Form(...),
     presentacion: Optional[str] = Form(None),
     perfil: Optional[UploadFile] = File(None),
@@ -146,7 +147,7 @@ def actualizar_colaborador(
     paterno: Optional[str] = Form(None),
     materno: Optional[str] = Form(None),
     rol: Optional[str] = Form(None),
-    tipo: Optional[str] = Form(None),
+    tipo: Optional[TipoColaborador] = Form(None),
     correo: Optional[str] = Form(None),
     presentacion: Optional[str] = Form(None),
     perfil: Optional[UploadFile] = File(None),

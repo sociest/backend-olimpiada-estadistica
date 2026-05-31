@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 
+from app.modules.auth.auth_model import EstadoAdministrador
 
 class LoginDTO(BaseModel):
     correo: str
@@ -16,7 +17,7 @@ class UsuarioAutenticadoDTO(BaseModel):
     id_administrador: int
     nombre: str
     correo: str
-    estado: str
+    estado: EstadoAdministrador
 
     model_config = ConfigDict(from_attributes=True)
 

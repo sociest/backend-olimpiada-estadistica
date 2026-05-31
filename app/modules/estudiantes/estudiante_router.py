@@ -11,6 +11,7 @@ from app.modules.estudiantes.estudiante_schema import (
     EstudianteEstadoUpdateDTO, ExportarEstudiantesDTO
 )
 from app.modules.estudiantes.estudiante_service import EstudianteService
+from app.modules.categorias.categoria_model import NivelEducativo
 
 router = APIRouter(prefix="/estudiantes", tags=["estudiantes"])
 
@@ -30,7 +31,7 @@ def listar_estudiantes(
     rude: Optional[str] = Query(None),
     mes_nacimiento: Optional[int] = Query(None),
     anio_nacimiento: Optional[int] = Query(None),
-    nivel: Optional[str] = Query(None),
+    nivel: Optional[NivelEducativo] = Query(None),
     curso: Optional[int] = Query(None),
     id_colegio: Optional[int] = Query(None),
     db: Session = Depends(get_db),

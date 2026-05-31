@@ -1,6 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
+from app.modules.personas.persona_model import EstadoPersona, TipoColaborador
 
 class PersonaBaseDTO(BaseModel):
     nombres: str
@@ -34,7 +35,7 @@ class DirectorResponseDTO(DirectorBaseDTO):
     nombres: str
     paterno: str
     materno: Optional[str] = None
-    estado: Optional[str] = None
+    estado: Optional[EstadoPersona] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -42,7 +43,7 @@ class DirectorResponseDTO(DirectorBaseDTO):
 class ColaboradorBaseDTO(BaseModel):
     presentacion: Optional[str] = None
     rol: str
-    tipo: str
+    tipo: TipoColaborador
     correo: str
 
 class ColaboradorCreateDTO(ColaboradorBaseDTO):
@@ -56,7 +57,7 @@ class ColaboradorUpdateDTO(BaseModel):
     materno: Optional[str] = None
     presentacion: Optional[str] = None
     rol: Optional[str] = None
-    tipo: Optional[str] = None
+    tipo: Optional[TipoColaborador] = None
     correo: Optional[str] = None
 
 class ColaboradorResponseDTO(ColaboradorBaseDTO):
@@ -65,7 +66,7 @@ class ColaboradorResponseDTO(ColaboradorBaseDTO):
     paterno: str
     materno: Optional[str] = None
     perfil: Optional[str] = None
-    estado: str
+    estado: EstadoPersona
 
     model_config = ConfigDict(from_attributes=True)
     

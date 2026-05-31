@@ -2,6 +2,10 @@ from datetime import date, datetime
 from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
+from app.modules.categorias.categoria_model import NivelEducativo
+from app.modules.colegios.colegio_model import TipoColegio, TurnoColegio
+from app.modules.inscripciones.inscripcion_model import EstadoInscripcion
+
 class EstudianteFormularioDTO(BaseModel):
     nombres: str
     paterno: str
@@ -9,7 +13,7 @@ class EstudianteFormularioDTO(BaseModel):
     carnet_identidad: str
     fecha_nacimiento: date
     curso: int
-    nivel: str
+    nivel: NivelEducativo
     rude: Optional[str] = None
     telefono: Optional[str] = None
     correo: Optional[str] = None
@@ -39,7 +43,7 @@ class EstudianteBusquedaResponseDTO(BaseModel):
     carnet_identidad: str
     fecha_nacimiento: date
     curso: Optional[int] = None
-    nivel: Optional[str] = None
+    nivel: Optional[NivelEducativo] = None
     rude: Optional[str] = None
     telefono: Optional[str] = None
     correo: Optional[str] = None
@@ -50,8 +54,8 @@ class EstudianteBusquedaResponseDTO(BaseModel):
 
 class ColegioMinimoDTO(BaseModel):
     nombre: str
-    tipo: str
-    turno: str
+    tipo: TipoColegio
+    turno: TurnoColegio
     calle: Optional[str] = None
     
     model_config = ConfigDict(from_attributes=True) # <-- SOLUCIÓN
@@ -78,7 +82,7 @@ class InscripcionResponseDTO(BaseModel):
     id_convocatoria: int
     id_categoria: int
     fecha_inscripcion: datetime
-    estado: str
+    estado: EstadoInscripcion
     estudiante: Optional[EstudianteMinimoDTO] = None
     categoria: Optional[CategoriaMinimaDTO] = None
 
@@ -95,7 +99,7 @@ class InscripcionAdminCreateDTO(BaseModel):
     id_categoria: int
 
 class InscripcionEstadoUpdateDTO(BaseModel):
-    estado: str
+    estado: EstadoInscripcion
 
 class ExportarInscripcionesRequestDTO(BaseModel):
     id_inscripciones: list[int]

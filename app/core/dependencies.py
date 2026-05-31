@@ -10,6 +10,7 @@ from app.core.exceptions import UnauthorizedError, BusinessRuleError
 from app.core.security import decode_access_token
 from app.db.database import get_db
 from app.modules.auth.auth_repository import AuthRepository
+from app.modules.auth.auth_model import EstadoAdministrador
 
 bearer_scheme = HTTPBearer(auto_error=False)
 limiter = Limiter(key_func=get_remote_address)
@@ -28,7 +29,7 @@ def get_current_admin(
 
     repository = AuthRepository(db)
     admin = repository.get_admin_by_id(int(admin_id))
-    if not admin or admin.estado != "ACTIVO":
+    if not admin or admin.estado != EstadoAdministrador.ACTIVO:
         raise UnauthorizedError("No autorizado")
 
     return admin.id_administrador

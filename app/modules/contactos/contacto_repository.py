@@ -15,7 +15,7 @@ class ContactoRepository:
             .options(selectinload(ContactoModel.email_logs))\
             .filter(ContactoModel.id_contacto == contacto_id).first()
 
-    def get_all(self, skip: int, limit: int, correo_electronico: Optional[str] = None, estado: Optional[str] = None,
+    def get_all(self, skip: int, limit: int, correo_electronico: Optional[str] = None, estado: Optional[EstadoContacto] = None,
                 creacion_start: Optional[datetime] = None, creacion_end: Optional[datetime] = None,
                 cambio_start: Optional[datetime] = None, cambio_end: Optional[datetime] = None):
         

@@ -7,7 +7,7 @@ from app.modules.administradores.administrador_schema import (
     AdministradorCreateDTO,
     AdministradorUpdateDTO,
 )
-from app.modules.auth.auth_model import AdministradorModel
+from app.modules.auth.auth_model import AdministradorModel, EstadoAdministrador
 from app.modules.sistema.sistema_model import AuditoriaModel, TipoAccion, TipoModulo
 from app.modules.sistema.sistema_repository import SistemaRepository
 
@@ -37,7 +37,7 @@ class AdministradorService:
             nombre=data.nombre,
             correo=data.correo,
             contrasena=hash_password(data.contrasena),
-            estado="ACTIVO",
+            estado=EstadoAdministrador.ACTIVO,
         )
 
         created = self.repository.create(administrador)
@@ -94,7 +94,7 @@ class AdministradorService:
 
     def baja_logic(self, administrador_id: int, current_admin_id: int):
         administrador = self.get_by_id(administrador_id)
-        administrador.estado = "INACTIVO"
+        administrador.estado = EstadoAdministrador.INACTIVO
         updated = self.repository.update(administrador)
         auditoria_registro = AuditoriaModel(
             id_administrador=current_admin_id,
@@ -107,7 +107,7 @@ class AdministradorService:
 
     def alta_logic(self, administrador_id: int, current_admin_id: int):
         administrador = self.get_by_id(administrador_id)
-        administrador.estado = "ACTIVO"
+        administrador.estado = EstadoAdministrador.ACTIVO
         updated = self.repository.update(administrador)
         auditoria_registro = AuditoriaModel(
             id_administrador=current_admin_id,

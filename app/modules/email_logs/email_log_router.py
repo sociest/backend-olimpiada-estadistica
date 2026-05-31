@@ -6,6 +6,7 @@ from app.core.dependencies import get_current_admin
 from app.db.database import get_db
 from app.modules.email_logs.email_log_schema import EmailLogResponseDTO, EmailLogCompletoResponseDTO
 from app.modules.email_logs.email_log_service import EmailLogService
+from app.modules.email_logs.email_log_model import EstadoEmail, TipoEmail
 from app.core.responses import ResponseBase, PaginatedResponse, PaginationMeta
 
 router = APIRouter(prefix="/email-logs", tags=["Email Logs"])
@@ -14,8 +15,8 @@ router = APIRouter(prefix="/email-logs", tags=["Email Logs"])
 def listar_logs(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
-    tipo: Optional[str] = None,
-    estado: Optional[str] = None,
+    tipo: Optional[TipoEmail] = None,
+    estado: Optional[EstadoEmail] = None,
     id_campania: Optional[int] = None,
     es_estudiante: Optional[bool] = None,
     es_contacto: Optional[bool] = None,
