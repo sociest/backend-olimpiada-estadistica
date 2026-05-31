@@ -49,7 +49,7 @@ def crear_administrador(
     current_admin_id: int = Depends(get_current_admin),
 ):
     service = AdministradorService(db)
-    administrador = service.create(data)
+    administrador = service.create(data, current_admin_id)
     return ResponseBase(data=administrador, message="Administrador creado correctamente")
 
 
@@ -61,7 +61,7 @@ def actualizar_administrador(
     current_admin_id: int = Depends(get_current_admin),
 ):
     service = AdministradorService(db)
-    administrador = service.update(administrador_id, data)
+    administrador = service.update(administrador_id, data, current_admin_id)
     return ResponseBase(data=administrador, message="Administrador actualizado correctamente")
 
 
@@ -72,7 +72,7 @@ def baja_logica_administrador(
     current_admin_id: int = Depends(get_current_admin),
 ):
     service = AdministradorService(db)
-    administrador = service.baja_logic(administrador_id)
+    administrador = service.baja_logic(administrador_id, current_admin_id)
     return ResponseBase(data=administrador, message="Administrador dado de baja logicamente")
 
 
@@ -83,7 +83,7 @@ def alta_logica_administrador(
     current_admin_id: int = Depends(get_current_admin),
 ):
     service = AdministradorService(db)
-    administrador = service.alta_logic(administrador_id)
+    administrador = service.alta_logic(administrador_id, current_admin_id)
     return ResponseBase(data=administrador, message="Administrador dado de alta logicamente")
 
 
@@ -94,5 +94,5 @@ def eliminar_administrador(
     current_admin_id: int = Depends(get_current_admin),
 ):
     service = AdministradorService(db)
-    administrador = service.delete_total(administrador_id)
+    administrador = service.delete_total(administrador_id, current_admin_id)
     return ResponseBase(data=administrador, message="Administrador eliminado permanentemente")
