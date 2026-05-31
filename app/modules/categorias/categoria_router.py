@@ -45,7 +45,7 @@ def crear_categoria(
     current_admin_id: int = Depends(get_current_admin),
 ):
     service = CategoriaService(db)
-    categoria = service.create(data)
+    categoria = service.create(data, current_admin_id)
     return ResponseBase(data=categoria, message="Categoría creada exitosamente")
 
 
@@ -57,7 +57,7 @@ def actualizar_categoria(
     current_admin_id: int = Depends(get_current_admin),
 ):
     service = CategoriaService(db)
-    categoria = service.update(categoria_id, data)
+    categoria = service.update(categoria_id, data, current_admin_id)
     return ResponseBase(data=categoria, message="Categoría actualizada exitosamente")
 
 
@@ -69,7 +69,7 @@ def cambiar_estado_categoria(
     current_admin_id: int = Depends(get_current_admin),
 ):
     service = CategoriaService(db)
-    categoria = service.cambiar_estado(categoria_id, data)
+    categoria = service.cambiar_estado(categoria_id, data, current_admin_id)
     return ResponseBase(data=categoria, message="Estado de la categoría actualizado exitosamente")
 
 
@@ -80,5 +80,5 @@ def eliminar_categoria_fisica(
     current_admin_id: int = Depends(get_current_admin),
 ):
     service = CategoriaService(db)
-    categoria = service.delete(categoria_id)
+    categoria = service.delete(categoria_id, current_admin_id)
     return ResponseBase(data=categoria, message="Categoría eliminada físicamente de forma exitosa")
