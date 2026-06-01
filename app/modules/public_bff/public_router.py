@@ -48,7 +48,7 @@ def get_colaboradores_public(
 )
 @limiter.limit("10/minute")
 async def obtener_colegios_minified_public(
-    request: Request,  # Requerido por slowapi
+    request: Request,
     db: Session = Depends(get_db)
 ):
     service = ColegioService(db)
