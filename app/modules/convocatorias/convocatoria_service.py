@@ -281,3 +281,70 @@ class ConvocatoriaService:
         if not convocatoria:
             raise NotFoundError("No hay ninguna convocatoria activa en este momento")
         return self._map_response(convocatoria)
+    
+    def get_convocatoria_principal_id(self) -> int:
+        convocatoria = self.repository.get_convocatoria_principal()
+        if not convocatoria:
+            raise NotFoundError("No hay ninguna convocatoria principal en este momento")
+        return convocatoria.id_convocatoria
+
+    def get_inicio_publico(self) -> dict:
+        convocatoria = self.repository.get_convocatoria_principal()
+        if not convocatoria:
+            raise NotFoundError("No hay ninguna convocatoria principal en este momento")
+        
+        return self._construir_detalle_publico(
+            convocatoria, 
+            tipos_materiales=[TipoMaterialEnum.AFICHE, TipoMaterialEnum.CONVOCATORIA]
+        )
+
+    def get_detalle_publico(self, convocatoria_id: int) -> dict:
+        convocatoria = self.repository.get_public_by_id(convocatoria_id)
+        if not convocatoria:
+            raise NotFoundError("Convocatoria no encontrada o no está publicada")
+            
+        return self._construir_detalle_publico(
+            convocatoria, 
+            tipos_materiales=[TipoMaterialEnum.AFICHE, TipoMaterialEnum.CONVOCATORIA, TipoMaterialEnum.REGLAMENTO]
+        )
+
+    def get_lista_publica(self) -> list:
+        convocatorias = self.repository.get_public_convocatorias_list()
+        return [
+            {
+                "id_convocatoria": c.id_convocatoria,
+                "nombre_convocatoria": c.nombre_convocatoria,
+                "gestion": c.gestion,
+                "descripcion": c.descripcion,
+                "inicio_olimpiadas": c.inicio_olimpiadas,
+                "fin_olimpiadas": c.fin_olimpiadas
+            }
+            for c in convocatorias
+        ]
+
+    def _construir_detalle_publico(self, convocatoria: ConvocatoriaModel, tipos_materiales: list) -> dict:
+        base_data = self._map_response(convocatoria)
+        
+        base_data["categorias"] = [
+            {
+                "id_categoria": cat.id_categoria,
+                "nombre_categoria": cat.nombre_categoria,
+                "curso": cat.curso,
+                "nivel": cat.nivel
+            }
+            for cat in convocatoria.categorias
+        ]
+        
+        materiales = {}
+        for tipo in tipos_materiales:
+            mat = self.material_repo.get_material_principal(convocatoria.id_convocatoria, tipo)
+            if mat and mat.estado == EstadoMaterial.PUBLICO:
+                materiales[tipo.name.lower()] = {
+                    "nombre": mat.nombre,
+                    "enlace_acceso": mat.enlace_acceso
+                }
+            else:
+                materiales[tipo.name.lower()] = None
+                
+        base_data["material_principal"] = materiales
+        return base_data

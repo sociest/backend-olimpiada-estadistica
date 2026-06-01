@@ -72,3 +72,16 @@ class MaterialPublicoRelacionDTO(BaseModel):
     tipo_material: TipoMaterialEnum
 
     model_config = ConfigDict(from_attributes=True)
+
+class MaterialPublicoDTO(BaseModel):
+    nombre: str
+    enlace_acceso: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class MaterialesInicioDTO(BaseModel):
+    afiche: Optional[MaterialPublicoDTO] = None
+    convocatoria: Optional[MaterialPublicoDTO] = None
+
+class MaterialesDetalleDTO(MaterialesInicioDTO):
+    reglamento: Optional[MaterialPublicoDTO] = None

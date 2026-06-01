@@ -112,3 +112,21 @@ class ConvocatoriaRepository:
             .first()
         )
         return ultima
+    
+    def get_public_by_id(self, convocatoria_id: int) -> Optional[ConvocatoriaModel]:
+        return (
+            self.db.query(ConvocatoriaModel)
+            .filter(
+                ConvocatoriaModel.id_convocatoria == convocatoria_id,
+                ConvocatoriaModel.estado == EstadoConvocatoria.PUBLICADA
+            )
+            .first()
+        )
+
+    def get_public_convocatorias_list(self):
+        return (
+            self.db.query(ConvocatoriaModel)
+            .filter(ConvocatoriaModel.estado == EstadoConvocatoria.PUBLICADA)
+            .order_by(ConvocatoriaModel.inicio_olimpiadas.desc())
+            .all()
+        )

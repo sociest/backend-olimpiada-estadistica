@@ -21,6 +21,13 @@ from app.modules.fases.fase_service import FaseService
 from app.modules.fases.fase_schema import FasePublicaDTO
 from app.modules.avisos.aviso_service import AvisoService
 from app.modules.avisos.aviso_schema import AvisoPublicoDTO
+from app.modules.convocatorias.convocatoria_service import ConvocatoriaService
+from app.modules.convocatorias.convocatoria_schema import (
+    ConvocatoriaIdDTO,
+    ConvocatoriaInicioDTO,
+    ConvocatoriaDetalleDTO,
+    ConvocatoriaListPublicDTO
+)
 
 router = APIRouter(prefix="/public", tags=["public"])
 
@@ -168,3 +175,39 @@ def get_avisos_publicos(
     data = PaginatedData(items=items, meta=meta)
     
     return PaginatedResponse(data=data, message="Avisos públicos obtenidos correctamente")
+
+@router.get("/convocatoria-principal", response_model=ResponseBase[ConvocatoriaIdDTO])
+def get_public_convocatoria_principal_id(db: Session = Depends(get_db)):
+    service = ConvocatoriaService(db)
+    id_convocatoria = service.get_convocatoria_principal_id()
+    return ResponseBase(
+        data={"id_convocatoria": id_convocatoria}, 
+        message="ID de convocatoria principal obtenido correctamente"
+    )
+
+@router.get("/inicio", response_model=ResponseBase[ConvocatoriaInicioDTO])
+def get_public_inicio(db: Session = Depends(get_db)):
+    service = ConvocatoriaService(db)
+    data = service.get_inicio_publico()
+    return ResponseBase(
+        data=data, 
+        message="Datos de inicio de convocatoria obtenidos correctamente"
+    )
+
+@router.get("/convocatoria/{id_convocatoria}/detalle", response_model=ResponseBase[ConvocatoriaDetalleDTO])
+def get_public_convocatoria_detalle(id_convocatoria: int, db: Session = Depends(get_db)):
+    service = ConvocatoriaService(db)
+    data = service.get_detalle_publico(id_convocatoria)
+    return ResponseBase(
+        data=data, 
+        message="Detalle de convocatoria obtenido correctamente"
+    )
+
+@router.get("/convocatorias", response_model=ResponseBase[List[ConvocatoriaListPublicDTO]])
+def get_public_convocatorias_list(db: Session = Depends(get_db)):
+    service = ConvocatoriaService(db)
+    data = service.get_lista_publica()
+    return ResponseBase(
+        data=data, 
+        message="Lista de convocatorias públicas obtenidas correctamente"
+    )

@@ -31,3 +31,13 @@ class CategoriaResponseDTO(CategoriaBaseDTO):
     estado: EstadoEntidad
 
     model_config = ConfigDict(from_attributes=True)
+
+class CategoriaInicioDTO(BaseModel):
+    nombre_categoria: str
+    curso: str
+    nivel: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class CategoriaDetalleDTO(CategoriaInicioDTO):
+    id_categoria: int
