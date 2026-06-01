@@ -82,3 +82,9 @@ class CSVUploadResponseDTO(BaseModel):
 class CSVImportDBResponseDTO(BaseModel):
     insertados: int
     errores: List[CSVImportErrorDTO]
+
+class ColegioPublicoMinifiedDTO(BaseModel):
+    id_colegio: int
+    nombre: str
+    municipio: str
+    turno: TurnoColegio

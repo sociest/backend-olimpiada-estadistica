@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-
+import asyncio
 from app.core.exceptions import NotFoundError
 from app.modules.colegios.colegio_model import ColegioModel, EstadoColegio
 from app.modules.colegios.colegio_repository import ColegioRepository
@@ -192,3 +192,19 @@ class ColegioService:
                 descripcion=descripcion,
             )
         )
+
+    async def get_colegios_minified(self):
+        try:
+            items = await asyncio.to_thread(self.repository.get_all_minified)
+        except Exception:
+            return []
+
+        return [
+            {
+                "id_colegio": item.id_colegio,
+                "nombre": item.nombre,
+                "municipio": item.municipio,
+                "turno": item.turno
+            }
+            for item in items or []
+        ]
