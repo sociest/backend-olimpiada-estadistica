@@ -198,12 +198,11 @@ class ResultadoService:
         page: int,
         limit: int,
         id_convocatoria: Optional[int],
-        id_categoria: Optional[int],
-        busqueda: Optional[str]
+        id_categoria: Optional[int]
     ):
         skip = (page - 1) * limit
         items, total = self.repository.get_public_resultados_finales(
-            skip, limit, id_convocatoria, id_categoria, busqueda
+            skip, limit, id_convocatoria, id_categoria
         )
         mapped_items = [
             {

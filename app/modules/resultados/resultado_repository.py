@@ -214,8 +214,7 @@ class ResultadoRepository:
         skip: int,
         limit: int,
         id_convocatoria: Optional[int],
-        id_categoria: Optional[int],
-        busqueda: Optional[str]
+        id_categoria: Optional[int]
     ):
         query = (
             self.db.query(
@@ -240,17 +239,6 @@ class ResultadoRepository:
         
         if id_convocatoria:
             query = query.filter(CategoriaModel.id_convocatoria == id_convocatoria)
-
-        if busqueda:
-            search_filter = f"%{busqueda}%"
-            query = query.filter(
-                or_(
-                    EstudianteModel.nombres.ilike(search_filter),
-                    EstudianteModel.paterno.ilike(search_filter),
-                    EstudianteModel.materno.ilike(search_filter),
-                    EstudianteModel.carnet_identidad.ilike(search_filter)
-                )
-            )
 
         total = query.count()
         items = query.order_by(desc(ResultadoModel.nota)).offset(skip).limit(limit).all()

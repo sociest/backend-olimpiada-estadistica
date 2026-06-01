@@ -117,17 +117,15 @@ def get_resultados_finales_public(
     limit: int = Query(20, ge=1),
     id_convocatoria: Optional[int] = Query(None),
     id_categoria: Optional[int] = Query(None),
-    busqueda: Optional[str] = Query(None),
     db: Session = Depends(get_db)
 ):
     service = ResultadoService(db)
-    items, total = service.get_public_resultados_finales(page, limit, id_convocatoria, id_categoria, busqueda)
+    items, total = service.get_public_resultados_finales(page, limit, id_convocatoria, id_categoria)
     
     meta = PaginationMeta(page=page, limit=limit, total=total, total_pages=(total + limit - 1) // limit)
     data = PaginatedData(items=items, meta=meta)
     
     return PaginatedResponse(data=data, message="Resultados finales obtenidos correctamente")
-
 @router.get("/fase/{id_fase}/resultados", response_model=ResponseBase[List[ResultadoPublicoFaseDTO]])
 @limiter.limit("10/minute")
 def get_resultados_fase_public(
