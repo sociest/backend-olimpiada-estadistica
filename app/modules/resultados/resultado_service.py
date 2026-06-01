@@ -11,7 +11,7 @@ from app.modules.resultados.resultado_schema import (
 )
 from app.modules.sistema.sistema_model import AuditoriaModel, TipoAccion, TipoModulo
 from app.modules.sistema.sistema_repository import SistemaRepository
-
+from typing import Optional
 
 class ResultadoService:
     def __init__(self, db: Session):
@@ -192,3 +192,38 @@ class ResultadoService:
                 descripcion=descripcion,
             )
         )
+
+    def get_public_resultados_finales(
+        self,
+        page: int,
+        limit: int,
+        id_convocatoria: Optional[int],
+        id_categoria: Optional[int],
+        busqueda: Optional[str]
+    ):
+        skip = (page - 1) * limit
+        items, total = self.repository.get_public_resultados_finales(
+            skip, limit, id_convocatoria, id_categoria, busqueda
+        )
+        mapped_items = [
+            {
+                "nombres": item.nombres,
+                "paterno": item.paterno,
+                "materno": item.materno,
+                "carnet_identidad": item.carnet_identidad,
+                "nota": item.nota
+            }
+            for item in items
+        ]
+        return mapped_items, total
+
+    def get_public_resultados_by_fase(self, id_fase: int):
+        items = self.repository.get_public_resultados_by_fase(id_fase)
+        return [
+            {
+                "carnet_identidad": item.carnet_identidad,
+                "nota": item.nota,
+                "observaciones": item.observaciones
+            }
+            for item in items
+        ]

@@ -15,6 +15,9 @@ from app.core.responses import ResponseBase
 from app.modules.materiales.material_model import TipoMaterialEnum
 from app.modules.materiales.material_service import MaterialService
 from app.modules.materiales.material_schema import MaterialPublicoGeneralDTO, MaterialPublicoRelacionDTO
+from app.modules.resultados.resultado_service import ResultadoService
+from app.modules.resultados.resultado_schema import ResultadoPublicoGeneralDTO, ResultadoPublicoFaseDTO
+
 router = APIRouter(prefix="/public", tags=["public"])
 
 @router.get(
@@ -105,3 +108,33 @@ def get_materiales_convocatoria_public(
     service = MaterialService(db)
     items = service.get_public_by_convocatoria(id_convocatoria)
     return ResponseBase(data=items, message="Materiales de la convocatoria obtenidos correctamente")
+
+@router.get("/resultados", response_model=PaginatedResponse[ResultadoPublicoGeneralDTO])
+@limiter.limit("10/minute")
+def get_resultados_finales_public(
+    request: Request,
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1),
+    id_convocatoria: Optional[int] = Query(None),
+    id_categoria: Optional[int] = Query(None),
+    busqueda: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    service = ResultadoService(db)
+    items, total = service.get_public_resultados_finales(page, limit, id_convocatoria, id_categoria, busqueda)
+    
+    meta = PaginationMeta(page=page, limit=limit, total=total, total_pages=(total + limit - 1) // limit)
+    data = PaginatedData(items=items, meta=meta)
+    
+    return PaginatedResponse(data=data, message="Resultados finales obtenidos correctamente")
+
+@router.get("/fase/{id_fase}/resultados", response_model=ResponseBase[List[ResultadoPublicoFaseDTO]])
+@limiter.limit("10/minute")
+def get_resultados_fase_public(
+    request: Request,
+    id_fase: int,
+    db: Session = Depends(get_db)
+):
+    service = ResultadoService(db)
+    items = service.get_public_resultados_by_fase(id_fase)
+    return ResponseBase(data=items, message="Resultados de la fase obtenidos correctamente")

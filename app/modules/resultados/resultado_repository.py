@@ -2,7 +2,7 @@ from typing import Literal, Optional
 from sqlalchemy import or_, asc, desc
 from sqlalchemy.orm import Session
 
-from app.modules.resultados.resultado_model import ResultadoModel
+from app.modules.resultados.resultado_model import ResultadoModel, EstadoResultado
 from app.modules.inscripciones.inscripcion_model import InscripcionModel
 from app.modules.estudiantes.estudiante_model import EstudianteModel
 from app.modules.fases.fase_model import FasePruebaModel
@@ -208,3 +208,67 @@ class ResultadoRepository:
         dict_resultados_existentes = {res.id_inscripcion: res.nota for res in resultados_raw}
 
         return id_categoria, dict_inscripciones, dict_resultados_existentes
+    
+    def get_public_resultados_finales(
+        self,
+        skip: int,
+        limit: int,
+        id_convocatoria: Optional[int],
+        id_categoria: Optional[int],
+        busqueda: Optional[str]
+    ):
+        query = (
+            self.db.query(
+                EstudianteModel.nombres,
+                EstudianteModel.paterno,
+                EstudianteModel.materno,
+                EstudianteModel.carnet_identidad,
+                ResultadoModel.nota
+            )
+            .join(InscripcionModel, ResultadoModel.id_inscripcion == InscripcionModel.id_inscripcion)
+            .join(EstudianteModel, InscripcionModel.id_estudiante == EstudianteModel.id_estudiante)
+            .join(FasePruebaModel, ResultadoModel.id_fase_prueba == FasePruebaModel.id_fase)
+            .join(CategoriaModel, ResultadoModel.id_categoria == CategoriaModel.id_categoria)
+            .filter(
+                ResultadoModel.estado == EstadoResultado.PUBLICADO,
+                FasePruebaModel.es_prueba_final == True
+            )
+        )
+
+        if id_categoria:
+            query = query.filter(CategoriaModel.id_categoria == id_categoria)
+        
+        if id_convocatoria:
+            query = query.filter(CategoriaModel.id_convocatoria == id_convocatoria)
+
+        if busqueda:
+            search_filter = f"%{busqueda}%"
+            query = query.filter(
+                or_(
+                    EstudianteModel.nombres.ilike(search_filter),
+                    EstudianteModel.paterno.ilike(search_filter),
+                    EstudianteModel.materno.ilike(search_filter),
+                    EstudianteModel.carnet_identidad.ilike(search_filter)
+                )
+            )
+
+        total = query.count()
+        items = query.order_by(desc(ResultadoModel.nota)).offset(skip).limit(limit).all()
+        return items, total
+
+    def get_public_resultados_by_fase(self, id_fase: int):
+        return (
+            self.db.query(
+                EstudianteModel.carnet_identidad,
+                ResultadoModel.nota,
+                ResultadoModel.observaciones
+            )
+            .join(InscripcionModel, ResultadoModel.id_inscripcion == InscripcionModel.id_inscripcion)
+            .join(EstudianteModel, InscripcionModel.id_estudiante == EstudianteModel.id_estudiante)
+            .filter(
+                ResultadoModel.id_fase_prueba == id_fase,
+                ResultadoModel.estado == EstadoResultado.PUBLICADO
+            )
+            .order_by(asc(EstudianteModel.carnet_identidad))
+            .all()
+        )

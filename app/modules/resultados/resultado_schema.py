@@ -56,3 +56,19 @@ class ResultadoMasivoUpdateItemDTO(BaseModel):
 class ResultadoMasivoUpdateDTO(BaseModel):
     id_fase_prueba: int
     resultados: List[ResultadoMasivoUpdateItemDTO]
+
+class ResultadoPublicoGeneralDTO(BaseModel):
+    nombres: str
+    paterno: str
+    materno: str
+    carnet_identidad: str
+    nota: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+class ResultadoPublicoFaseDTO(BaseModel):
+    carnet_identidad: str
+    nota: int
+    observaciones: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
