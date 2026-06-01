@@ -56,3 +56,19 @@ class MaterialResponseDTO(BaseModel):
 class MaterialDetalleResponseDTO(MaterialResponseDTO):
     convocatorias: List[RelacionConvocatoriaDTO] = []
     fases: List[RelacionFaseDTO] = []
+
+class MaterialPublicoGeneralDTO(BaseModel):
+    nombre_material: str
+    enlace_acceso: str
+    descripcion: Optional[str] = None
+    fecha_publicacion: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class MaterialPublicoRelacionDTO(BaseModel):
+    nombre_material: str
+    descripcion: Optional[str] = None
+    enlace_acceso: str
+    tipo_material: TipoMaterialEnum
+
+    model_config = ConfigDict(from_attributes=True)

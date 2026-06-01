@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 from sqlalchemy.orm import Session
 from fastapi import UploadFile
 
@@ -319,3 +320,43 @@ class MaterialService:
                 descripcion=descripcion,
             )
         )
+
+    def get_public_materiales(
+        self, page: int, limit: int, tipo_material: Optional[TipoMaterialEnum],
+        fecha_start: Optional[datetime], fecha_end: Optional[datetime], busqueda: Optional[str]
+    ):
+        skip = (page - 1) * limit
+        items, total = self.repository.get_public_materiales(
+            skip, limit, tipo_material, fecha_start, fecha_end, busqueda
+        )
+        mapped_items = [
+            {
+                "nombre_material": item.nombre_material,
+                "enlace_acceso": item.enlace_acceso,
+                "descripcion": item.descripcion,
+                "fecha_publicacion": item.fecha_publicacion
+            } for item in items
+        ]
+        return mapped_items, total
+
+    def get_public_by_convocatoria(self, id_convocatoria: int):
+        items = self.repository.get_public_by_convocatoria(id_convocatoria)
+        return [
+            {
+                "nombre_material": item.nombre_material,
+                "descripcion": item.descripcion,
+                "enlace_acceso": item.enlace_acceso,
+                "tipo_material": item.tipo_material
+            } for item in items
+        ]
+
+    def get_public_by_fase(self, id_fase: int):
+        items = self.repository.get_public_by_fase(id_fase)
+        return [
+            {
+                "nombre_material": item.nombre_material,
+                "descripcion": item.descripcion,
+                "enlace_acceso": item.enlace_acceso,
+                "tipo_material": item.tipo_material
+            } for item in items
+        ]

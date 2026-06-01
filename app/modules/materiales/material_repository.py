@@ -4,6 +4,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app.modules.materiales.material_model import MaterialConvocatoriaModel, MaterialFaseModel, MaterialModel, EstadoMaterial, TipoMaterialEnum
 from app.modules.convocatorias.convocatoria_model import ConvocatoriaModel
+from sqlalchemy import func
 
 class MaterialRepository:
     def __init__(self, db: Session):
@@ -96,3 +97,40 @@ class MaterialRepository:
 
     def check_link_fase(self, id_material: int, id_fase: int) -> bool:
         return self.db.query(MaterialFaseModel).filter_by(id_material=id_material, id_fase=id_fase).first() is not None
+
+    def get_public_materiales(
+        self, skip: int, limit: int, tipo_material: Optional[TipoMaterialEnum],
+        fecha_start: Optional[datetime], fecha_end: Optional[datetime], busqueda: Optional[str]
+    ):
+        query = self.db.query(MaterialModel).filter(
+            MaterialModel.estado == EstadoMaterial.PUBLICO,
+            MaterialModel.fecha_publicacion <= func.now()
+        )
+
+        if tipo_material: query = query.filter(MaterialModel.tipo_material == tipo_material)
+        if fecha_start: query = query.filter(MaterialModel.fecha_publicacion >= fecha_start)
+        if fecha_end: query = query.filter(MaterialModel.fecha_publicacion <= fecha_end)
+        if busqueda:
+            search = f"%{busqueda}%"
+            query = query.filter(or_(
+                MaterialModel.nombre_material.ilike(search),
+                MaterialModel.descripcion.ilike(search)
+            ))
+
+        total = query.count()
+        items = query.order_by(MaterialModel.fecha_publicacion.desc()).offset(skip).limit(limit).all()
+        return items, total
+
+    def get_public_by_convocatoria(self, id_convocatoria: int):
+        return self.db.query(MaterialModel).join(MaterialConvocatoriaModel).filter(
+            MaterialConvocatoriaModel.id_convocatoria == id_convocatoria,
+            MaterialModel.estado == EstadoMaterial.PUBLICO,
+            MaterialModel.fecha_publicacion <= func.now()
+        ).order_by(MaterialModel.fecha_publicacion.desc()).all()
+
+    def get_public_by_fase(self, id_fase: int):
+        return self.db.query(MaterialModel).join(MaterialFaseModel).filter(
+            MaterialFaseModel.id_fase == id_fase,
+            MaterialModel.estado == EstadoMaterial.PUBLICO,
+            MaterialModel.fecha_publicacion <= func.now()
+        ).order_by(MaterialModel.fecha_publicacion.desc()).all()
