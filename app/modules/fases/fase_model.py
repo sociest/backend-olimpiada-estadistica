@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import CheckConstraint, Column, DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, CheckConstraint, Column, DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.db.database import Base
@@ -54,6 +54,7 @@ class FasePruebaModel(Base):
     criterio_aprobacion = Column(Integer, nullable=False)
     fecha_realizacion = Column(DateTime, nullable=False)
     lugar_realizacion = Column(String(255), nullable=True)
+    es_prueba_final = Column(Boolean, nullable=False, default=False)
 
     __table_args__ = (
         CheckConstraint('criterio_aprobacion >= 0', name='check_criterio_aprobacion_positivo'),

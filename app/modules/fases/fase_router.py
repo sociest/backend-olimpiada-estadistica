@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_current_admin
@@ -5,6 +6,7 @@ from app.core.responses import PaginatedData, PaginatedResponse, PaginationMeta,
 from app.db.database import get_db
 from app.modules.fases.fase_schema import (
     FaseEstadoUpdateDTO,
+    FaseMinifiedResponseDTO,
     FasePreparacionCreateDTO,
     FasePreparacionResponseDTO,
     FasePreparacionUpdateDTO,
@@ -43,6 +45,12 @@ def listar_fases_por_categoria(
     meta = PaginationMeta(page=page, limit=limit, total=len(items), total_pages=(len(items) + limit - 1) // limit)
     data = PaginatedData(items=items, meta=meta)
     return PaginatedResponse(data=data, message="Lista de fases obtenida correctamente")
+
+@router.get("/prueba/{categoria_id}/minified", response_model=ResponseBase[List[FaseMinifiedResponseDTO]])
+def listar_fases_prueba_minified(categoria_id: int, db: Session = Depends(get_db)):
+    service = FaseService(db)
+    data = service.get_pruebas_minified_by_categoria(categoria_id)
+    return ResponseBase(data=data, message="Lista minimizada de fases de prueba obtenida exitosamente")
 
 @router.post("/prueba", response_model=ResponseBase[FasePruebaResponseDTO])
 def crear_fase_prueba(
@@ -109,8 +117,8 @@ def eliminar_fase_logica(
 
 @router.delete("/{fase_id}")
 def eliminar_fase(
-    fase_id:int,
-    db:Session = Depends(get_db),
+    fase_id: int,
+    db: Session = Depends(get_db),
     current_admin_id: int = Depends(get_current_admin),
 ):
     service = FaseService(db)

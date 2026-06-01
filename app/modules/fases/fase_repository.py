@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session, joinedload
 from app.modules.fases.fase_model import EstadoEntidad, FaseModel, FasePreparacionModel, FasePruebaModel
 from datetime import datetime
+
 class FaseRepository:
     def __init__(self, db: Session):
         self.db = db
@@ -36,6 +37,26 @@ class FaseRepository:
         return self.db.query(FaseModel).filter(
             FaseModel.id_categoria_fk == categoria_id, FaseModel.estado != EstadoEntidad.ELIMINADA
         ).count()
+
+    def check_fase_final_existente(self, categoria_id: int) -> bool:
+        resultado = self.db.query(FasePruebaModel).join(
+            FaseModel, FasePruebaModel.id_fase == FaseModel.id_fase
+        ).filter(
+            FaseModel.id_categoria_fk == categoria_id,
+            FasePruebaModel.es_prueba_final == True
+        ).first()
+        return resultado is not None
+
+    def get_pruebas_minified_by_categoria(self, categoria_id: int):
+        return self.db.query(
+            FaseModel.id_fase, 
+            FaseModel.nombre_fase
+        ).join(
+            FasePruebaModel, FaseModel.id_fase == FasePruebaModel.id_fase
+        ).filter(
+            FaseModel.id_categoria_fk == categoria_id,
+            FaseModel.estado != EstadoEntidad.ELIMINADA
+        ).all()
 
     def create_fase_base(self, fase: FaseModel) -> FaseModel:
         self.db.add(fase)

@@ -44,12 +44,19 @@ class FaseService:
         mapped_items = [self._map_to_polymorphic(item) for item in items]
         return mapped_items, total
     
-    def get_by_id_categoria(self, categoria_id:int):
+    def get_by_id_categoria(self, categoria_id: int):
         items = self.repository.get_by_id_categoria(categoria_id)
         mapped_items = [self._map_to_polymorphic(item) for item in items]
         return mapped_items
 
+    def get_pruebas_minified_by_categoria(self, categoria_id: int):
+        items = self.repository.get_pruebas_minified_by_categoria(categoria_id)
+        return [{"id_fase": row.id_fase, "nombre_fase": row.nombre_fase} for row in items]
+
     def create_fase_prueba(self, data: FasePruebaCreateDTO, current_admin_id: int):
+        if self.repository.check_fase_final_existente(data.id_categoria_fk):
+            raise BusinessRuleError("No se pueden crear más fases para esta categoría porque ya existe una prueba final.")
+
         if data.id_fase_anterior:
             fase_ant = self.repository.get_by_id(data.id_fase_anterior)
             if not fase_ant or not fase_ant.prueba:
@@ -71,6 +78,7 @@ class FaseService:
                 criterio_aprobacion=data.criterio_aprobacion,
                 fecha_realizacion=data.fecha_realizacion,
                 lugar_realizacion=data.lugar_realizacion,
+                es_prueba_final=data.es_prueba_final
             )
             fase_completada = self.repository.create_fase_prueba(fase_prueba)
             self._auditar_fase(
@@ -85,6 +93,9 @@ class FaseService:
             raise
 
     def create_fase_preparacion(self, data: FasePreparacionCreateDTO, current_admin_id: int):
+        if self.repository.check_fase_final_existente(data.id_categoria_fk):
+            raise BusinessRuleError("No se pueden crear más fases para esta categoría porque ya existe una prueba final.")
+
         if data.fecha_inicio >= data.fecha_fin:
             raise BusinessRuleError("La fecha de inicio debe ser anterior a la fecha de fin.")
         try:
@@ -118,6 +129,10 @@ class FaseService:
         fase = self.repository.get_by_id(fase_id)
         if not fase or not fase.prueba:
             raise NotFoundError("Fase de Prueba no encontrada")
+
+        if data.es_prueba_final is True and fase.prueba.es_prueba_final is False:
+            if self.repository.check_fase_final_existente(fase.id_categoria_fk):
+                raise BusinessRuleError("Ya existe una prueba final para esta categoría.")
 
         if data.id_fase_anterior:
             fase_ant = self.repository.get_by_id(data.id_fase_anterior)

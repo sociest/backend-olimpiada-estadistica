@@ -43,6 +43,7 @@ class FasePruebaCreateDTO(FaseBaseDTO):
     criterio_aprobacion: int = Field(..., ge=0)
     fecha_realizacion: datetime
     lugar_realizacion: Optional[str] = None
+    es_prueba_final: bool = False
 
 
 class FasePruebaUpdateDTO(BaseModel):
@@ -53,12 +54,19 @@ class FasePruebaUpdateDTO(BaseModel):
     criterio_aprobacion: Optional[int] = Field(None, ge=0)
     fecha_realizacion: Optional[datetime] = None
     lugar_realizacion: Optional[str] = None
+    es_prueba_final: Optional[bool] = None
 
 
 class FasePruebaResponseDTO(FasePruebaCreateDTO):
     id_fase: int
     estado: EstadoEntidad
     tipo_fase: Literal["PRUEBA"] = "PRUEBA"
+
+    model_config = ConfigDict(from_attributes=True)
+
+class FaseMinifiedResponseDTO(BaseModel):
+    id_fase: int
+    nombre_fase: str
 
     model_config = ConfigDict(from_attributes=True)
 
