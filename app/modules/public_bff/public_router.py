@@ -152,6 +152,7 @@ def get_resultados_fase_public(
     return ResponseBase(data=items, message="Resultados de la fase obtenidos correctamente")
 
 @router.get("/fases/{id_categoria}", response_model=ResponseBase[List[FasePublicaDTO]])
+@limiter.limit("10/minute")
 def get_fases_publicas_categoria(
     id_categoria: int,
     db: Session = Depends(get_db)
@@ -161,6 +162,7 @@ def get_fases_publicas_categoria(
     return ResponseBase(data=items, message="Fases públicas obtenidas correctamente")
 
 @router.get("/avisos-publicos", response_model=PaginatedResponse[AvisoPublicoDTO])
+@limiter.limit("10/minute")
 def get_avisos_publicos(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1),
@@ -180,6 +182,7 @@ def get_avisos_publicos(
     return PaginatedResponse(data=data, message="Avisos públicos obtenidos correctamente")
 
 @router.get("/convocatoria-principal", response_model=ResponseBase[ConvocatoriaIdDTO])
+@limiter.limit("10/minute")
 def get_public_convocatoria_principal_id(db: Session = Depends(get_db)):
     service = ConvocatoriaService(db)
     id_convocatoria = service.get_convocatoria_principal_id()
@@ -189,6 +192,7 @@ def get_public_convocatoria_principal_id(db: Session = Depends(get_db)):
     )
 
 @router.get("/inicio", response_model=ResponseBase[ConvocatoriaInicioDTO])
+@limiter.limit("10/minute")
 def get_public_inicio(db: Session = Depends(get_db)):
     service = ConvocatoriaService(db)
     data = service.get_inicio_publico()
@@ -198,6 +202,7 @@ def get_public_inicio(db: Session = Depends(get_db)):
     )
 
 @router.get("/convocatoria/{id_convocatoria}/detalle", response_model=ResponseBase[ConvocatoriaDetalleDTO])
+@limiter.limit("10/minute")
 def get_public_convocatoria_detalle(id_convocatoria: int, db: Session = Depends(get_db)):
     service = ConvocatoriaService(db)
     data = service.get_detalle_publico(id_convocatoria)
@@ -207,6 +212,7 @@ def get_public_convocatoria_detalle(id_convocatoria: int, db: Session = Depends(
     )
 
 @router.get("/convocatorias", response_model=ResponseBase[List[ConvocatoriaListPublicDTO]])
+@limiter.limit("10/minute")
 def get_public_convocatorias_list(db: Session = Depends(get_db)):
     service = ConvocatoriaService(db)
     data = service.get_lista_publica()
@@ -216,6 +222,7 @@ def get_public_convocatorias_list(db: Session = Depends(get_db)):
     )
 
 @router.get("{id_convocatoria}/categorias", response_model= ResponseBase[List[CategoriaDetalleDTO]])
+@limiter.limit("10/minute")
 async def get_categorias_minified_lis(id_convocatoria: int, db: Session=Depends(get_db)):
     service = CategoriaService(db)
     data = service.get_by_convocatoria_minified(id_convocatoria)
@@ -225,6 +232,7 @@ async def get_categorias_minified_lis(id_convocatoria: int, db: Session=Depends(
     )
 
 @router.get("/convocatorias-minified", response_model= ResponseBase[List[ConvocatoriaMinified]])
+@limiter.limit("10/minute")
 async def get_convocatorias_minifed_list(db: Session = Depends(get_db)):
     service = ConvocatoriaService(db)
     data = service.get_public_minified_list()
