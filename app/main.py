@@ -77,7 +77,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 register_exception_handlers(app)
 
 API_PREFIJO_BASE = "/api/v1"
-API_PREFIJO_PUBLIC = "/api/public"
+API_PREFIJO_PUBLIC = "/api/public/v1"
 
 app.include_router(auth_router, prefix=API_PREFIJO_BASE)
 app.include_router(administrador_router, prefix=API_PREFIJO_BASE)
