@@ -146,9 +146,8 @@ class AvisoService:
 
     def get_avisos_publicos_minified(self, page: int, limit: int):
         skip = (page - 1) * limit
-        items = self.repository.get_avisos_publicos_minified(skip, limit)
+        items = [self._with_estado_temporal(item) for item in self.repository.get_public(skip=skip, limit=limit, filters={})]
         total = self.repository.count_public(filters={})
-        
         mapped_items = [
             {
                 "prioridad": item.prioridad.value if hasattr(item.prioridad, 'value') else item.prioridad,
