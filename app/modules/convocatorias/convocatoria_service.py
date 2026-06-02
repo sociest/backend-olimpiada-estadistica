@@ -348,3 +348,18 @@ class ConvocatoriaService:
                 
         base_data["material_principal"] = materiales
         return base_data
+
+    def get_public_minified_list(self) -> list:
+        items = self.repository.get_public_minified_list()
+        items_mapped = []
+        for item in items:
+            estado_temporal = self.calculate_estado_temporal(item)
+            if(estado_temporal == EstadoTemporal.FINALIZADA):
+                items_mapped.append(
+                    {
+                        "id_convocatoria": item.id_convocatoria,
+                        "nombre_convocatoria": item.nombre_convocatoria,
+                        "gestion": item.gestion
+                    }
+                )
+        return items_mapped

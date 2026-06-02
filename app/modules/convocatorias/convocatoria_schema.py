@@ -81,3 +81,8 @@ class ConvocatoriaListPublicDTO(BaseModel):
     fin_olimpiadas: Optional[date] = None
 
     model_config = ConfigDict(from_attributes=True)
+    
+class ConvocatoriaMinified(BaseModel):
+    id_convocatoria: int
+    nombre_convocatoria: str
+    gestion: int

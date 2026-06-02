@@ -130,3 +130,11 @@ class ConvocatoriaRepository:
             .order_by(ConvocatoriaModel.inicio_olimpiadas.desc())
             .all()
         )
+    
+    def get_public_minified_list(self):
+        return (
+            self.db.query(ConvocatoriaModel)
+            .filter(ConvocatoriaModel.estado == EstadoConvocatoria.PUBLICADA)
+            .order_by(ConvocatoriaModel.inicio_olimpiadas.desc())
+            .all()
+        )
