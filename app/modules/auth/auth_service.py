@@ -16,11 +16,17 @@ class AuthService:
         self.repository = AuthRepository(db)
         self.sistema_repository = SistemaRepository(db)
 
-    def login(self, data: LoginDTO):
+    def login(self, data: LoginDTO, client_ip: str | None = None):
         admin = self.repository.get_admin_by_correo(data.correo)
         if not admin or admin.estado != EstadoAdministrador.ACTIVO or not verify_password(data.contrasena, admin.contrasena):
-            time.sleep(
-               random.uniform(0.8, 1.5)
+            time.sleep(random.uniform(0.8, 1.5))
+            self.sistema_repository.create_auditoria(
+                AuditoriaModel(
+                    id_administrador=admin.id_administrador if admin else None,
+                    accion=TipoAccion.LOGIN_FALLIDO,
+                    modulo=TipoModulo.AUTH,
+                    descripcion=f"Intento de login fallido correo: {data.correo}  ip: {client_ip}",
+                )
             )
             raise AuthenticationError("Credenciales invalidas")
 

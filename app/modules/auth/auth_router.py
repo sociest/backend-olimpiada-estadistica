@@ -35,8 +35,9 @@ async def login(
         username_hp=data.username_hp,
         client_ip=request.client.host,
     )
+    client_ip = (request.headers.get("CF-Connecting-IP") or request.client.host)
     service = AuthService(db)
-    token_data = service.login(data)
+    token_data = service.login(data, client_ip=client_ip)
     return ResponseBase(
         data=token_data,
         message="Autenticacion exitosa"

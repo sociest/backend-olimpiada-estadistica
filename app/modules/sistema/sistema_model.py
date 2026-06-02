@@ -22,6 +22,7 @@ class TipoModulo(str, enum.Enum):
     DIRECTOR = 'DIRECTOR'
     COLEGIO = 'COLEGIO'
     MATERIAL = 'MATERIAL'
+    AUTH = 'AUTH'
 
 class TipoAccion(str, enum.Enum):
     CREAR = 'CREAR'
@@ -31,6 +32,7 @@ class TipoAccion(str, enum.Enum):
     OCULTAR = 'OCULTAR'
     REPROGRAMAR = 'REPROGRAMAR'
     RESPONDER = 'RESPONDER'
+    LOGIN_FALLIDO = 'LOGIN_FALLIDO'
 
 class TipoActividad(str, enum.Enum):
     INSCRIPCION = 'INSCRIPCION'
