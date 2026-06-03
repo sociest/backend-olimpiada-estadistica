@@ -14,7 +14,7 @@ class ConvocatoriaBaseDTO(BaseModel):
     fin_olimpiadas: Optional[date] = None
     fecha_inicio_inscripcion: Optional[datetime] = None
     fecha_fin_inscripcion: Optional[datetime] = None
-    monto_inscripcion: Optional[float] = Field(None, ge=0)
+    monto_inscripcion: Optional[float] = Field(None, ge=0.0)
 
 
 class ConvocatoriaCreateDTO(ConvocatoriaBaseDTO):
@@ -29,7 +29,7 @@ class ConvocatoriaUpdateDTO(BaseModel):
     fin_olimpiadas: Optional[date] = None
     fecha_inicio_inscripcion: Optional[datetime] = None
     fecha_fin_inscripcion: Optional[datetime] = None
-    monto_inscripcion: Optional[float] = Field(None, ge=0)
+    monto_inscripcion: Optional[float] = Field(None, ge=0.0)
 
 
 class ConvocatoriaResponseDTO(ConvocatoriaBaseDTO):
@@ -50,7 +50,7 @@ class ConvocatoriaInicioDTO(BaseModel):
     gestion: int
     descripcion: Optional[str] = None
     estado_temporal: str
-    monto_inscripcion: Optional[Decimal] = None
+    monto_inscripcion: Optional[float] = Field(None, ge=0.0)
     inicio_olimpiadas: Optional[date] = None
     fin_olimpiadas: Optional[date] = None
     fecha_inicio_inscripcion: Optional[datetime] = None
@@ -64,7 +64,7 @@ class ConvocatoriaDetalleDTO(BaseModel):
     gestion: int
     descripcion: Optional[str] = None
     estado_temporal: str
-    monto_inscripcion: Optional[Decimal] = None
+    monto_inscripcion: Optional[float] = Field(None, ge=0.0)
     inicio_olimpiadas: Optional[date] = None
     fin_olimpiadas: Optional[date] = None
     fecha_inicio_inscripcion: Optional[datetime] = None

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.exceptions import BusinessRuleError, NotFoundError
 from app.modules.convocatorias.convocatoria_model import ConvocatoriaModel, EstadoConvocatoria, EstadoTemporal
 from app.modules.convocatorias.convocatoria_repository import ConvocatoriaRepository
-from app.modules.convocatorias.convocatoria_schema import ConvocatoriaCreateDTO, ConvocatoriaUpdateDTO
+from app.modules.convocatorias.convocatoria_schema import ConvocatoriaCreateDTO, ConvocatoriaUpdateDTO, ConvocatoriaResponseDTO
 # al inicio de convocatoria_service.py, agregá:
 from app.modules.materiales.material_repository import MaterialRepository
 from app.modules.materiales.material_model import EstadoMaterial, TipoMaterialEnum
@@ -65,9 +65,13 @@ class ConvocatoriaService:
             raise BusinessRuleError("El fin de inscripción no puede estar en el pasado.")
 
     def _map_response(self, convocatoria: ConvocatoriaModel):
-        data = convocatoria.__dict__.copy()
+        data = {}
+        for column in convocatoria.__table__.columns:
+            data[column.name] = getattr(convocatoria, column.name)
+        
         data["estado_temporal"] = self.calculate_estado_temporal(convocatoria)
-        return data
+        
+        return ConvocatoriaResponseDTO.model_validate(data).model_dump()
 
     def get_by_id(self, convocatoria_id: int):
         convocatoria = self.repository.get_by_id(convocatoria_id)
@@ -203,9 +207,11 @@ class ConvocatoriaService:
             if estado_actual not in [EstadoConvocatoria.BORRADOR, EstadoConvocatoria.OCULTA]:
                 raise BusinessRuleError(f"No se puede publicar desde {estado_actual.value}.")
             
-            if not all([convocatoria.inicio_olimpiadas, convocatoria.fin_olimpiadas,
-                        convocatoria.fecha_inicio_inscripcion, convocatoria.fecha_fin_inscripcion,
-                        convocatoria.monto_inscripcion]):
+            if (convocatoria.inicio_olimpiadas is None or
+                convocatoria.fin_olimpiadas is None or
+                convocatoria.fecha_inicio_inscripcion is None or
+                convocatoria.fecha_fin_inscripcion is None or
+                convocatoria.monto_inscripcion is None):
                 raise BusinessRuleError("Para publicar, todos los campos de fechas y monto deben estar completos.")
             
             if self.repository.check_overlap_fechas_global(
@@ -329,7 +335,7 @@ class ConvocatoriaService:
             {
                 "id_categoria": cat.id_categoria,
                 "nombre_categoria": cat.nombre_categoria,
-                "curso": cat.curso,
+                "curso": str(cat.curso),
                 "nivel": cat.nivel
             }
             for cat in convocatoria.categorias
@@ -340,7 +346,7 @@ class ConvocatoriaService:
             mat = self.material_repo.get_material_principal(convocatoria.id_convocatoria, tipo)
             if mat and mat.estado == EstadoMaterial.PUBLICO:
                 materiales[tipo.name.lower()] = {
-                    "nombre": mat.nombre,
+                    "nombre": mat.nombre_material,
                     "enlace_acceso": mat.enlace_acceso
                 }
             else:

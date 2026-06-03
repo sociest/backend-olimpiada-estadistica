@@ -16,6 +16,7 @@ ALLOWED_MATERIAL_CONTENT_TYPES = {
     "application/vnd.ms-powerpoint",
     "application/vnd.openxmlformats-officedocument.presentationml.presentation",
     "image/jpeg",
+    "image/jpeg",
     "image/png",
     "image/svg+xml"
 }

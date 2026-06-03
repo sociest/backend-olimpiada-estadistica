@@ -150,10 +150,10 @@ class AvisoService:
         total = self.repository.count_public(filters={})
         mapped_items = [
             {
-                "prioridad": item.prioridad.value if hasattr(item.prioridad, 'value') else item.prioridad,
-                "titulo": item.titulo,
-                "descripcion": item.descripcion,
-                "tipo": item.tipo.value if hasattr(item.tipo, 'value') else item.tipo
+                "prioridad": item["prioridad"].value if hasattr(item["prioridad"], 'value') else item["prioridad"],
+                "titulo": item["titulo"],
+                "descripcion": item["descripcion"],
+                "tipo": item["tipo"].value if hasattr(item["tipo"], 'value') else item["tipo"]
             }
             for item in items
         ]

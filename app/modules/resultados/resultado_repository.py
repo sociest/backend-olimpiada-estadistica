@@ -10,7 +10,7 @@ from sqlalchemy.orm import joinedload
 from app.modules.categorias.categoria_model import CategoriaModel
 from app.modules.convocatorias.convocatoria_model import ConvocatoriaModel
 from app.modules.fases.fase_model import FaseModel
-
+from app.modules.personas.persona_model import PersonaModel
 class ResultadoRepository:
     def __init__(self, db: Session):
         self.db = db
@@ -218,9 +218,9 @@ class ResultadoRepository:
     ):
         query = (
             self.db.query(
-                EstudianteModel.nombres,
-                EstudianteModel.paterno,
-                EstudianteModel.materno,
+                PersonaModel.nombres,
+                PersonaModel.paterno,
+                PersonaModel.materno,
                 EstudianteModel.carnet_identidad,
                 ResultadoModel.nota
             )
@@ -228,6 +228,7 @@ class ResultadoRepository:
             .join(EstudianteModel, InscripcionModel.id_estudiante == EstudianteModel.id_estudiante)
             .join(FasePruebaModel, ResultadoModel.id_fase_prueba == FasePruebaModel.id_fase)
             .join(CategoriaModel, ResultadoModel.id_categoria == CategoriaModel.id_categoria)
+            .join(PersonaModel, EstudianteModel.id_estudiante == PersonaModel.id_persona)
             .filter(
                 ResultadoModel.estado == EstadoResultado.PUBLICADO,
                 FasePruebaModel.es_prueba_final == True

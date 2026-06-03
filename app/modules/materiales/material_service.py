@@ -35,11 +35,21 @@ class MaterialService:
             return EstadoTemporalMaterial.VISIBLE
         return EstadoTemporalMaterial.NO_VISIBLE
 
-    def _map_response(self, material: MaterialModel):
-        data = material.__dict__.copy()
-        data["estado_temporal"] = self.calcular_estado_temporal(material)
+    def _map_response(self, material: MaterialModel) -> dict:
+        # Método seguro: obtener las columnas de la tabla
+        data = {}
+        # Iterar sobre las columnas de la tabla del modelo
+        for column in material.__table__.columns:
+            value = getattr(material, column.name)
+            # Si el valor es un Enum, convertirlo a su valor primitivo
+            if hasattr(value, 'value'):
+                value = value.value
+            data[column.name] = value
+        # Calcular estado temporal usando el método existente
+        estado_temp = self.calcular_estado_temporal(material)
+        data["estado_temporal"] = estado_temp.value if hasattr(estado_temp, 'value') else estado_temp
         return data
-
+    
     def _map_detalle_response(self, material: MaterialModel):
         data = self._map_response(material)
         data["convocatorias"] = [
