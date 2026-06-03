@@ -13,7 +13,8 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 1440
     supabase_url: str = ""
     supabase_service_role_key: str = ""
-    supabase_bucket_materiales: str = "materiales"
+    supabase_bucket_materiales: str = ""
+    supabase_bucket_perfiles: str = ""
     port: int = 8000
     cloudflare_secret_key: str = ""
     

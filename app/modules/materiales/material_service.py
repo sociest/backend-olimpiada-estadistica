@@ -36,16 +36,13 @@ class MaterialService:
         return EstadoTemporalMaterial.NO_VISIBLE
 
     def _map_response(self, material: MaterialModel) -> dict:
-        # Método seguro: obtener las columnas de la tabla
         data = {}
-        # Iterar sobre las columnas de la tabla del modelo
         for column in material.__table__.columns:
             value = getattr(material, column.name)
             # Si el valor es un Enum, convertirlo a su valor primitivo
             if hasattr(value, 'value'):
                 value = value.value
             data[column.name] = value
-        # Calcular estado temporal usando el método existente
         estado_temp = self.calcular_estado_temporal(material)
         data["estado_temporal"] = estado_temp.value if hasattr(estado_temp, 'value') else estado_temp
         return data
@@ -369,4 +366,18 @@ class MaterialService:
                 "enlace_acceso": item.enlace_acceso,
                 "tipo_material": item.tipo_material
             } for item in items
+        ]
+    
+    def get_material_principal_by_tipo(self, tipo_material: TipoMaterialEnum):
+        if tipo_material not in TIPOS_PRINCIPALES:
+            raise BusinessRuleError("El tipo de material no es principal")
+        
+        items = self.repository.get_materiales_principales_by_tipo(tipo_material)
+        return [
+            {
+                "id_material":item.id_material,
+                "nombre_material": item.nombre_material,
+                "enlace_acceso": item.enlace_acceso,
+            }
+            for item in items
         ]

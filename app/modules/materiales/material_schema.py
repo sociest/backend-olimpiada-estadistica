@@ -85,3 +85,8 @@ class MaterialesInicioDTO(BaseModel):
 
 class MaterialesDetalleDTO(MaterialesInicioDTO):
     reglamento: Optional[MaterialPublicoDTO] = None
+
+class MaterialPrincipalResponse(BaseModel):
+    id_material: int
+    nombre_material: str
+    enlace_acceso: str

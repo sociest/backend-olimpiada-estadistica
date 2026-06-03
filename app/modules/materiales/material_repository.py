@@ -134,3 +134,9 @@ class MaterialRepository:
             MaterialModel.estado == EstadoMaterial.PUBLICO,
             MaterialModel.fecha_publicacion <= func.now()
         ).order_by(MaterialModel.fecha_publicacion.desc()).all()
+        
+    def get_materiales_principales_by_tipo(self, tipo_material: TipoMaterialEnum):
+        return self.db.query(MaterialModel).join(MaterialConvocatoriaModel).filter(
+            MaterialConvocatoriaModel.id_material == MaterialConvocatoriaModel.id_material,
+            MaterialModel.tipo_material == tipo_material
+        )

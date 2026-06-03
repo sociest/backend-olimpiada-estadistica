@@ -11,7 +11,8 @@ from app.modules.materiales.material_schema import (
     MaterialExternoCreateDTO,
     MaterialUpdateDTO,
     MaterialResponseDTO,
-    MaterialDetalleResponseDTO
+    MaterialDetalleResponseDTO,
+    MaterialPrincipalResponse
 )
 from app.modules.materiales.material_service import MaterialService
 
@@ -152,3 +153,8 @@ def desligar_fase(id_material: int, id_fase: int, db: Session = Depends(get_db),
 def eliminar_material(id_material: int, db: Session = Depends(get_db), admin=Depends(get_current_admin)):
     service = MaterialService(db)
     return ResponseBase(data=service.delete(id_material, admin), message="Material eliminado")
+
+@router.get("/principal/{tipo_material}", response_model=ResponseBase[List[MaterialPrincipalResponse]])
+def obtener_materiales_principales(tipo_material: TipoMaterialEnum, db: Session = Depends(get_db), admin=Depends(get_current_admin)):
+    service = MaterialService(db)
+    return ResponseBase(data=service.get_material_principal_by_tipo(tipo_material), message="Materiales principales obtenidos")
