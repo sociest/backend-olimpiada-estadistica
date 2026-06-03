@@ -337,3 +337,6 @@ class InscripcionService:
         doc.build(story)
         buffer.seek(0)
         return buffer
+
+    def get_estadisticas_inscripcion(self, id_convocatoria: int):
+        return self.repository.get_estadisticas_inscripcion(id_convocatoria)
