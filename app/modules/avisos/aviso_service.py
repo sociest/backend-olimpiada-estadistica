@@ -5,7 +5,7 @@ from app.core.exceptions import NotFoundError
 from app.modules.auth.auth_repository import AuthRepository
 from app.modules.avisos.aviso_model import AvisoModel, EstadoAviso
 from app.modules.avisos.aviso_repository import AvisoRepository
-from app.modules.avisos.aviso_schema import AvisoCreateDTO, AvisoUpdateDTO, AvisoEstadoUpdateDTO, AvisoResponseDTO
+from app.modules.avisos.aviso_schema import AvisoCreateDTO, AvisoUpdateDTO, AvisoEstadoUpdateDTO, AvisoResponseDTO, AvisoPublicoDTO
 from app.modules.sistema.sistema_model import AuditoriaModel, TipoAccion, TipoModulo
 from app.modules.sistema.sistema_repository import SistemaRepository
 
@@ -133,7 +133,7 @@ class AvisoService:
             return "NO_VISIBLE"
         if (
             aviso.fecha_publicacion
-            and datetime.utcnow() < aviso.fecha_publicacion
+            and datetime.now() < aviso.fecha_publicacion
         ):
             return "EN_ESPERA"
         return EstadoAviso.PUBLICADO.value
@@ -146,15 +146,17 @@ class AvisoService:
 
     def get_avisos_publicos_minified(self, page: int, limit: int):
         skip = (page - 1) * limit
-        items = [self._with_estado_temporal(item) for item in self.repository.get_public(skip=skip, limit=limit, filters={})]
+        items = self.repository.get_avisos_publicos_minified(skip=skip, limit=limit)
         total = self.repository.count_public(filters={})
-        mapped_items = [
-            {
-                "prioridad": item["prioridad"].value if hasattr(item["prioridad"], 'value') else item["prioridad"],
-                "titulo": item["titulo"],
-                "descripcion": item["descripcion"],
-                "tipo": item["tipo"].value if hasattr(item["tipo"], 'value') else item["tipo"]
-            }
-            for item in items
-        ]
+        mapped_items = []
+        for item in items:
+            estado_temporal = self._calculate_estado_temporal(item)
+            if (estado_temporal == EstadoAviso.PUBLICADO.value):
+                mapped_items.append(AvisoPublicoDTO(
+                    prioridad=item.prioridad,
+                    titulo = item.titulo,
+                    descripcion = item.descripcion,
+                    tipo = item.tipo
+                ))
+        
         return mapped_items, total

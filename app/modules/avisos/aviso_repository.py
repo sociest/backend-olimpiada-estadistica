@@ -131,7 +131,9 @@ class AvisoRepository:
                 AvisoModel.prioridad,
                 AvisoModel.titulo,
                 AvisoModel.descripcion,
-                AvisoModel.tipo
+                AvisoModel.tipo,
+                AvisoModel.estado,
+                AvisoModel.fecha_publicacion
             )
             .filter(AvisoModel.estado == EstadoAviso.PUBLICADO)
             .filter(AvisoModel.fecha_publicacion.isnot(None))

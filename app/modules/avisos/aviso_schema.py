@@ -38,6 +38,4 @@ class AvisoPublicoDTO(BaseModel):
     prioridad: str
     titulo: str
     descripcion: str
-    tipo: str
-
-    model_config = ConfigDict(from_attributes=True)
+    tipo: TipoAviso
