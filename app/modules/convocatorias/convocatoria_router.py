@@ -11,6 +11,7 @@ from app.modules.convocatorias.convocatoria_schema import (
     ConvocatoriaCreateDTO,
     ConvocatoriaResponseDTO,
     ConvocatoriaUpdateDTO,
+    ConvocatoriaEstadisticasCTO
 )
 from app.modules.convocatorias.convocatoria_service import ConvocatoriaService
 
@@ -107,3 +108,13 @@ def eliminar_convocatoria_fisica(
     service = ConvocatoriaService(db)
     resultado = service.delete(convocatoria_id, current_admin_id)
     return ResponseBase(data=resultado, message="Convocatoria eliminada físicamente del sistema")
+
+
+@router.get("/{convocatoria_id}/estadisticas", response_model=ResponseBase[ConvocatoriaEstadisticasCTO])
+async def obtener_estadisticas(
+    convocatoria_id:int,
+    db: Session = Depends(get_db)
+):
+    service = ConvocatoriaService(db)
+    resultado = service.get_conv_dashboard(convocatoria_id)
+    return ResponseBase(data = resultado, message="Estadisticas conseguidas correctamente")

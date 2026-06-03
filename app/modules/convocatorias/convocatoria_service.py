@@ -10,12 +10,14 @@ from app.modules.materiales.material_repository import MaterialRepository
 from app.modules.materiales.material_model import EstadoMaterial, TipoMaterialEnum
 from app.modules.sistema.sistema_model import AuditoriaModel, TipoAccion, TipoModulo
 from app.modules.sistema.sistema_repository import SistemaRepository
+from app.modules.inscripciones.inscripcion_service import InscripcionService
 
 class ConvocatoriaService:
     def __init__(self, db: Session):
         self.repository = ConvocatoriaRepository(db)
         self.material_repo = MaterialRepository(db)
         self.sistema_repository = SistemaRepository(db)
+        self.inscripcion_service = InscripcionService(db)
         
     def calculate_estado_temporal(self, convocatoria: ConvocatoriaModel) -> EstadoTemporal:
         if convocatoria.estado == EstadoConvocatoria.OCULTA:
@@ -369,3 +371,10 @@ class ConvocatoriaService:
                     }
                 )
         return items_mapped
+    
+    def get_conv_dashboard(self, id_convocatoria: int) -> dict:
+        estadistica_convocatoria = self.inscripcion_service.get_estadisticas_inscripcion(id_convocatoria)
+        categorias = self.repository.get_by_id(id_convocatoria).categorias
+        estadistica_convocatoria["total_categorias"] = len(categorias) or 0
+        return estadistica_convocatoria
+        

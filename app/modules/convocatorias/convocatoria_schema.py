@@ -86,3 +86,9 @@ class ConvocatoriaMinified(BaseModel):
     id_convocatoria: int
     nombre_convocatoria: str
     gestion: int
+    
+class ConvocatoriaEstadisticasCTO(BaseModel):
+    aprobados: int
+    pendientes: int
+    total: int
+    total_categorias: int
