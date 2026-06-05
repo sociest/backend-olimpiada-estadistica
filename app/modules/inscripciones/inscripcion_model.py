@@ -18,7 +18,7 @@ class InscripcionModel(Base):
     id_estudiante = Column(Integer, ForeignKey("estudiante.id_estudiante", ondelete="RESTRICT"), nullable=False, index=True)
     id_convocatoria = Column(Integer, ForeignKey("convocatoria.id_convocatoria", ondelete="RESTRICT"), nullable=False, index=True)
     id_categoria = Column(Integer, ForeignKey("categoria.id_categoria", ondelete="RESTRICT"), nullable=False, index=True)
-    fecha_inscripcion = Column(DateTime, nullable=False, server_default=func.now())
+    fecha_inscripcion = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     estado = Column(Enum(EstadoInscripcion, name="estado_inscripcion"), nullable=False, default=EstadoInscripcion.PENDIENTE)
 
     estudiante = relationship("EstudianteModel", lazy="joined")

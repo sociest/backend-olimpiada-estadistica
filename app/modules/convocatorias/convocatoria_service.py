@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import BusinessRuleError, NotFoundError
@@ -30,7 +30,7 @@ class ConvocatoriaService:
         if not all([convocatoria.inicio_olimpiadas, convocatoria.fin_olimpiadas, convocatoria.fecha_inicio_inscripcion, convocatoria.fecha_fin_inscripcion]):
             return EstadoTemporal.BORRADOR
 
-        ahora = datetime.now()
+        ahora = datetime.now(timezone.utc)
         ahora_date = ahora.date()
 
         if ahora_date < convocatoria.inicio_olimpiadas:
@@ -55,8 +55,9 @@ class ConvocatoriaService:
             raise BusinessRuleError("El fin de inscripción debe estar dentro del rango de la olimpiada.")
 
     def _validate_fechas_futuras(self, updates: dict):
-        hoy = date.today()
-        ahora = datetime.now()
+        ahora = datetime.now(timezone.utc)
+        hoy = ahora.date()
+        
         if "inicio_olimpiadas" in updates and updates["inicio_olimpiadas"] and updates["inicio_olimpiadas"] < hoy:
             raise BusinessRuleError("La fecha de inicio de olimpiadas no puede estar en el pasado.")
         if "fin_olimpiadas" in updates and updates["fin_olimpiadas"] and updates["fin_olimpiadas"] < hoy:

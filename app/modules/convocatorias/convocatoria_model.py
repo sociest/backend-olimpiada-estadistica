@@ -32,12 +32,12 @@ class ConvocatoriaModel(Base):
     descripcion = Column(Text, nullable=True)
     inicio_olimpiadas = Column(Date, nullable=True)
     fin_olimpiadas = Column(Date, nullable=True)
-    fecha_inicio_inscripcion = Column(DateTime, nullable=True)
-    fecha_fin_inscripcion = Column(DateTime, nullable=True)
+    fecha_inicio_inscripcion = Column(DateTime(timezone=True), nullable=True)
+    fecha_fin_inscripcion = Column(DateTime(timezone=True), nullable=True)
     monto_inscripcion = Column(Numeric(10, 2), nullable=True)
     estado = Column(Enum(EstadoConvocatoria, name="estado_convocatoria"), nullable=False, default=EstadoConvocatoria.BORRADOR)
-    fecha_creacion = Column(DateTime, nullable=False, server_default=func.now())
-    fecha_actualizacion = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+    fecha_creacion = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    fecha_actualizacion = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
 
     __table_args__ = (
         CheckConstraint(

@@ -1,53 +1,52 @@
 version: "3.9"
 
 services:
-
   db:
     image: postgres:15
     container_name: postgres-dev
-
     ports:
-      - "5433:5432"
-
+      - "5433:5432"           # Opcional: solo para acceso externo, no necesario para comunicación interna
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123456
       POSTGRES_DB: olimpiadas_bd_v2
       TZ: America/La_Paz
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database:/docker-entrypoint-initdb.d
-
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d olimpiadas_bd_v2"]
       interval: 5s
       timeout: 5s
       retries: 5
       start_period: 10s
+    networks:
+      - app_network           # Red común para la comunicación
 
   backend:
     build:
       context: .
       dockerfile: Dockerfile.dev
-
     container_name: fastapi-dev
-
     ports:
       - "8000:8000"
-
     volumes:
       - .:/app
-
+    env_file:
+      - .env                  # Carga todas las variables del archivo .env
     environment:
       - ENV=development
       - TZ=America/La_Paz
-
     restart: always
-
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - app_network           # Misma red que la base de datos
+
+networks:
+  app_network:
+    driver: bridge            # Red tipo bridge para la comunicación interna
 
 volumes:
   postgres_data:

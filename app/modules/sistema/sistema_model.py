@@ -46,7 +46,7 @@ class AuditoriaModel(Base):
     accion = Column(Enum(TipoAccion, name="tipo_accion"), nullable=False)
     descripcion = Column(Text, nullable=True)
     modulo = Column(Enum(TipoModulo, name="tipo_modulo"), nullable=True)
-    fecha = Column(DateTime, nullable=False, server_default=func.now(), index=True)
+    fecha = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), index=True)
 
     administrador = relationship("AdministradorModel")
 
@@ -57,4 +57,4 @@ class ActividadSistemaModel(Base):
     tipo = Column(Enum(TipoActividad, name="tipo_actividad"), nullable=False)
     titulo = Column(String(200), nullable=False)
     descripcion = Column(Text, nullable=True)
-    fecha = Column(DateTime, nullable=False, server_default=func.now())
+    fecha = Column(DateTime(timezone=True), nullable=False, server_default=func.now())

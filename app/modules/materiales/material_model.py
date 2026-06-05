@@ -53,7 +53,7 @@ class MaterialConvocatoriaModel(Base):
 
     id_convocatoria = Column(Integer, ForeignKey("convocatoria.id_convocatoria", ondelete="CASCADE"), primary_key=True)
     id_material = Column(Integer, ForeignKey("material.id_material", ondelete="CASCADE"), primary_key=True)
-    fecha_creacion = Column(DateTime, server_default=func.now())
+    fecha_creacion = Column(DateTime(timezone=True), server_default=func.now())
 
     material = relationship("MaterialModel", back_populates="convocatorias")
     convocatoria = relationship("ConvocatoriaModel")
@@ -63,6 +63,6 @@ class MaterialFaseModel(Base):
 
     id_fase = Column(Integer, ForeignKey("fase.id_fase", ondelete="CASCADE"), primary_key=True)
     id_material = Column(Integer, ForeignKey("material.id_material", ondelete="CASCADE"), primary_key=True)
-    fecha_creacion = Column(DateTime, server_default=func.now())
+    fecha_creacion = Column(DateTime(timezone=True), server_default=func.now())
 
     material = relationship("MaterialModel", back_populates="fases")

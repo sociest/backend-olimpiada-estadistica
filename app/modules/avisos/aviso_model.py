@@ -40,6 +40,6 @@ class AvisoModel(Base):
     descripcion = Column(Text, nullable=False)
     tipo = Column(Enum(TipoAviso, name="tipo_aviso"), nullable=False, default=TipoAviso.GENERAL)
     prioridad = Column(Enum(AvisoPrioridad, name="aviso_prioridad"), nullable=False, default=AvisoPrioridad.MEDIA)
-    fecha_creacion = Column(DateTime, nullable=False, server_default=func.now())
-    fecha_publicacion = Column(DateTime, nullable=True)
+    fecha_creacion = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    fecha_publicacion = Column(DateTime(timezone=True), nullable=True)
     estado = Column(Enum(EstadoAviso, name="estado_aviso"), nullable=False, default=EstadoAviso.BORRADOR)

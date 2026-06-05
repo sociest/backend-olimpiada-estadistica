@@ -19,8 +19,8 @@ class ResultadoModel(Base):
     id_inscripcion = Column(Integer, ForeignKey("inscripcion.id_inscripcion", ondelete="CASCADE"), nullable=False, index=True)
     nota = Column(Integer, nullable=False)
     observaciones = Column(Text, nullable=True)
-    fecha_creacion = Column(DateTime, server_default=func.now(), nullable=False)
-    fecha_actualizacion = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    fecha_creacion = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    fecha_actualizacion = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     estado = Column(Enum(EstadoResultado, name="estado_resultado"), nullable=False, default=EstadoResultado.BORRADOR)
 
     __table_args__ = (

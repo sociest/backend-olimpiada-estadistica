@@ -26,11 +26,11 @@ class EmailLog(Base):
     estado = Column(Enum(EstadoEmail, name="estado_email"), nullable=False, default=EstadoEmail.PENDIENTE)
     error = Column(Text, nullable=True)
     intentos = Column(Integer, nullable=False, default=0)
-    ultimo_intento = Column(DateTime, nullable=True)
-    fecha_creacion = Column(DateTime, nullable=False, default=func.now())
-    fecha_envio = Column(DateTime, nullable=True)
-    fecha_actualizacion = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
-    
+    ultimo_intento = Column(DateTime(timezone=True), nullable=True)
+    fecha_creacion = Column(DateTime(timezone=True), nullable=False, default=func.now())
+    fecha_envio = Column(DateTime(timezone=True), nullable=True)
+    fecha_actualizacion = Column(DateTime(timezone=True), nullable=False, default=func.now(), onupdate=func.now())
+
     id_estudiante = Column(Integer, ForeignKey("estudiante.id_estudiante", ondelete="SET NULL"), nullable=True)
     id_contacto = Column(Integer, ForeignKey("contacto.id_contacto", ondelete="SET NULL"), nullable=True)
     id_campania = Column(Integer, ForeignKey("campania_email.id_campania_email", ondelete="SET NULL"), nullable=True)

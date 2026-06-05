@@ -36,8 +36,8 @@ class FasePreparacionModel(Base):
     __tablename__ = "fase_preparacion"
 
     id_fase = Column(Integer, ForeignKey("fase.id_fase", ondelete="CASCADE"), primary_key=True, index=True)
-    fecha_inicio = Column(DateTime, nullable=False)
-    fecha_fin = Column(DateTime, nullable=False)
+    fecha_inicio = Column(DateTime(timezone=True), nullable=False)
+    fecha_fin = Column(DateTime(timezone=True), nullable=False)
 
     __table_args__ = (
         CheckConstraint('fecha_inicio < fecha_fin', name='check_fechas_preparacion'),
@@ -52,7 +52,7 @@ class FasePruebaModel(Base):
     id_fase = Column(Integer, ForeignKey("fase.id_fase", ondelete="CASCADE"), primary_key=True, index=True)
     id_fase_anterior = Column(Integer, ForeignKey("fase_prueba.id_fase", ondelete="SET NULL"), nullable=True)
     criterio_aprobacion = Column(Integer, nullable=False)
-    fecha_realizacion = Column(DateTime, nullable=False)
+    fecha_realizacion = Column(DateTime(timezone=True), nullable=False)
     lugar_realizacion = Column(String(255), nullable=True)
     es_prueba_final = Column(Boolean, nullable=False, default=False)
 
