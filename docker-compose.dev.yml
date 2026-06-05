@@ -1,6 +1,31 @@
 version: "3.9"
 
 services:
+
+  db:
+    image: postgres:15
+    container_name: postgres-dev
+
+    ports:
+      - "5433:5432"
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: olimpiadas_bd_v2
+      TZ: America/La_Paz
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database:/docker-entrypoint-initdb.d
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d olimpiadas_bd_v2"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
   backend:
     build:
       context: .
@@ -21,23 +46,8 @@ services:
     restart: always
 
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
-  db:
-    image: postgres:15
-    container_name: postgres-dev
-    ports:
-      - "5433:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123456
-      POSTGRES_DB: olimpiadas_bd_v2
-      TZ: America/La_Paz
-    volumes:
-      # Persistencia de postgres
-      - postgres_data:/var/lib/postgresql/data
-
-      # Scripts SQL automáticos
-      - ./database:/docker-entrypoint-initdb.d
 volumes:
   postgres_data:
