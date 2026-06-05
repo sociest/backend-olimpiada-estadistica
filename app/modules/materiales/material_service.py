@@ -381,3 +381,13 @@ class MaterialService:
             }
             for item in items
         ]
+    
+    def get_material_principal_by_convocatoria(self, id_convocatoria: int):
+        material = self.repository.get_material_principal_by_convocatoria(id_convocatoria)
+        if not material:
+            raise NotFoundError("Material principal no encontrado")
+        return {
+            "id_material": material.id,
+            "nombre_material": material.nombre_material,
+            "enlace_acceso": material.enlace_acceso
+        }

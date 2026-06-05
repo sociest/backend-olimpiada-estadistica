@@ -140,3 +140,12 @@ class MaterialRepository:
             MaterialConvocatoriaModel.id_material == MaterialConvocatoriaModel.id_material,
             MaterialModel.tipo_material == tipo_material
         )
+    
+    def get_material_principal_by_convocatoria(self, id_convocatoria: int):
+        return self.db.query(MaterialModel).join(MaterialConvocatoriaModel).filter(
+            MaterialConvocatoriaModel.id_convocatoria == id_convocatoria,
+            MaterialConvocatoriaModel.id_material == MaterialModel.id_material,
+            MaterialModel.tipo_material == TipoMaterialEnum.AFICHE or 
+            MaterialModel.tipo_material == TipoMaterialEnum.CONVOCATORIA or
+            MaterialModel.tipo_material == TipoMaterialEnum.REGLAMENTO 
+        ).first()
