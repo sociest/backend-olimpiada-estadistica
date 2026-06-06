@@ -134,12 +134,6 @@ class MaterialService:
             TipoAccion.CREAR,
             f"Material de archivo creado {creado.nombre_material} tipo {creado.tipo_material}",
         )
-        
-        print()
-        print()
-        print(f"Material de archivo creado: {creado.nombre_material}")
-        print()
-        print()
         return self._map_response(creado)
 
     def create_principal(self, id_convocatoria: int, tipo_material: TipoMaterialEnum, nombre_material: str, descripcion: str, file: UploadFile, current_admin_id: int):
@@ -180,7 +174,8 @@ class MaterialService:
 
     def update(self, material_id: int, data: MaterialUpdateDTO, current_admin_id: int):
         material = self.repository.get_by_id(material_id)
-        if not material: raise NotFoundError("Material no encontrado")
+        if not material:
+            raise NotFoundError("Material no encontrado")
 
         if data.fecha_publicacion and data.fecha_publicacion < datetime.now(timezone.utc) and material.fecha_publicacion != data.fecha_publicacion:
             raise BusinessRuleError("La fecha de publicación debe ser igual o posterior a la actual")
@@ -189,6 +184,26 @@ class MaterialService:
             if any(v is not None for k, v in data.model_dump().items() if k not in ['nombre_material', 'descripcion']):
                 raise BusinessRuleError("Solo nombre y descripción son editables en estado PUBLICO")
 
+        if material.tipo_material in TIPOS_EXTERNOS and data.tipo_material is not None and data.tipo_material not in TIPOS_EXTERNOS:
+            raise BusinessRuleError("No se puede cambiar un material externo a un tipo no externo.")
+
+        effective_tipo = data.tipo_material if data.tipo_material is not None else material.tipo_material
+
+        if effective_tipo in TIPOS_PRINCIPALES:
+            if any([
+                data.tipo_material is not None,
+                data.fecha_publicacion is not None,
+                data.enlace_acceso is not None,
+            ]):
+                raise BusinessRuleError("Solo se permite editar nombre y descripción para materiales principales.")
+
+        if effective_tipo not in TIPOS_EXTERNOS and effective_tipo not in TIPOS_PRINCIPALES:
+            if data.tipo_material is not None and (data.tipo_material in TIPOS_EXTERNOS or data.tipo_material in TIPOS_PRINCIPALES):
+                raise BusinessRuleError("Solo se permite cambiar entre tipos que no sean externos ni principales.")
+
+        if data.enlace_acceso is not None and effective_tipo not in TIPOS_EXTERNOS:
+            raise BusinessRuleError("No se puede editar el enlace de acceso en materiales que no son externos.")
+        
         old_nombre = material.nombre_material
         if data.nombre_material:
             material.nombre_material = data.nombre_material.upper()
@@ -196,11 +211,11 @@ class MaterialService:
             material.descripcion = data.descripcion
 
         if material.estado in [EstadoMaterial.BORRADOR, EstadoMaterial.OCULTO]:
+            if data.tipo_material is not None:
+                material.tipo_material = data.tipo_material
             if material.tipo_material in TIPOS_EXTERNOS:
-                if data.tipo_material and data.tipo_material not in TIPOS_EXTERNOS:
-                    raise BusinessRuleError("Solo puede cambiar entre tipos externos")
-                if data.tipo_material: material.tipo_material = data.tipo_material
-                if data.enlace_acceso: material.enlace_acceso = data.enlace_acceso
+                if data.enlace_acceso:
+                    material.enlace_acceso = data.enlace_acceso
             if data.fecha_publicacion is not None:
                 material.fecha_publicacion = data.fecha_publicacion
 
