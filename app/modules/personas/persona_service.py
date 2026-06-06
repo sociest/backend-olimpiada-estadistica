@@ -231,7 +231,7 @@ class PersonaService:
         perfil_url = None
         if perfil_file:
             content = perfil_file.file.read()
-            perfil_url = self.storage.upload_material(content, perfil_file.filename, content_type=perfil_file.content_type)
+            perfil_url = self.storage.upload_profile(content, perfil_file.filename, content_type=perfil_file.content_type)
 
         persona = PersonaModel(
             nombres=data.nombres,
@@ -264,7 +264,7 @@ class PersonaService:
             if colaborador.perfil:
                 self.storage.delete_file(colaborador.perfil)
             content = perfil_file.file.read()
-            colaborador.perfil = self.storage.upload_material(content, perfil_file.filename, content_type=perfil_file.content_type)
+            colaborador.perfil = self.storage.upload_profile(content, perfil_file.filename, content_type=perfil_file.content_type)
 
         update_data = data.model_dump(exclude_unset=True)
         for key, value in update_data.items():
