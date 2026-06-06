@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 from sqlalchemy.orm import Session
@@ -28,7 +28,7 @@ class MaterialService:
         self.storage = SupabaseStorageClient()
 
     def calcular_estado_temporal(self, material: MaterialModel) -> EstadoTemporalMaterial:
-        ahora = datetime.now()
+        ahora = datetime.now(timezone.utc)
         if material.estado in [EstadoMaterial.BORRADOR, EstadoMaterial.OCULTO]:
             return EstadoTemporalMaterial(material.estado.value)
         if material.fecha_publicacion and ahora >= material.fecha_publicacion:
@@ -80,9 +80,11 @@ class MaterialService:
         return [self._map_response(i) for i in self.repository.get_by_fase(id_fase)]
 
     def create_externo(self, data: MaterialExternoCreateDTO, current_admin_id: int):
+        if data.fecha_publicacion is None:
+            raise BusinessRuleError("La fecha de publicación es requerida")
         if data.tipo_material not in TIPOS_EXTERNOS:
             raise BusinessRuleError("Tipo de material no es externo")
-        if data.fecha_publicacion and data.fecha_publicacion < datetime.now():
+        if data.fecha_publicacion and data.fecha_publicacion < datetime.now(timezone.utc):
             raise BusinessRuleError("La fecha de publicación debe ser igual o posterior a la actual")
 
         material = MaterialModel(
@@ -102,13 +104,15 @@ class MaterialService:
         return self._map_response(creado)
 
     def create_archivo(self, nombre_material: str, descripcion: str, tipo_material: TipoMaterialEnum, fecha_publicacion: datetime, file: UploadFile, current_admin_id: int):
+        if fecha_publicacion is None:
+            raise BusinessRuleError("La fecha de publicación es requerida")
         if tipo_material in TIPOS_EXTERNOS or tipo_material in TIPOS_PRINCIPALES:
             raise BusinessRuleError("Use el endpoint correspondiente para este tipo de material")
-        if fecha_publicacion and fecha_publicacion < datetime.now():
+        if fecha_publicacion and fecha_publicacion < datetime.now(timezone.utc):
             raise BusinessRuleError("La fecha de publicación debe ser igual o posterior a la actual")
 
         nombre_upper = nombre_material.upper()
-        fecha_creacion = datetime.now()
+        fecha_creacion = datetime.now(timezone.utc)
         extension = Path(file.filename).suffix
         nombre_supabase = self._generar_nombre_supabase(nombre_upper, extension, fecha_creacion)
 
@@ -130,6 +134,12 @@ class MaterialService:
             TipoAccion.CREAR,
             f"Material de archivo creado {creado.nombre_material} tipo {creado.tipo_material}",
         )
+        
+        print()
+        print()
+        print(f"Material de archivo creado: {creado.nombre_material}")
+        print()
+        print()
         return self._map_response(creado)
 
     def create_principal(self, id_convocatoria: int, tipo_material: TipoMaterialEnum, nombre_material: str, descripcion: str, file: UploadFile, current_admin_id: int):
@@ -143,7 +153,7 @@ class MaterialService:
             raise BusinessRuleError(f"La convocatoria ya tiene un material de tipo {tipo_material.value}. Reemplácelo o elimínelo primero.")
 
         nombre_upper = nombre_material.upper()
-        fecha_creacion = datetime.now()
+        fecha_creacion = datetime.now(timezone.utc)
         extension = Path(file.filename).suffix
         nombre_supabase = self._generar_nombre_supabase(nombre_upper, extension, fecha_creacion)
 
@@ -155,7 +165,7 @@ class MaterialService:
             descripcion=descripcion,
             tipo_material=tipo_material,
             enlace_acceso=enlace,
-            fecha_publicacion=datetime.now(),
+            fecha_publicacion=datetime.now(timezone.utc),
             estado=EstadoMaterial.PUBLICO,
             fecha_creacion=fecha_creacion
         )
@@ -172,7 +182,7 @@ class MaterialService:
         material = self.repository.get_by_id(material_id)
         if not material: raise NotFoundError("Material no encontrado")
 
-        if data.fecha_publicacion and data.fecha_publicacion < datetime.now() and material.fecha_publicacion != data.fecha_publicacion:
+        if data.fecha_publicacion and data.fecha_publicacion < datetime.now(timezone.utc) and material.fecha_publicacion != data.fecha_publicacion:
             raise BusinessRuleError("La fecha de publicación debe ser igual o posterior a la actual")
 
         if material.estado == EstadoMaterial.PUBLICO:

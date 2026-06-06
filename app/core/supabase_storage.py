@@ -70,7 +70,7 @@ class SupabaseStorageClient:
             path_in_bucket = old_url.split(f"{self.bucket_materiales}/")[-1]
             decoded_old_path = parse.unquote(path_in_bucket)
             new_storage_path = parse.quote(new_filename)
-            self.client.storage.from_(self.bucket).move(decoded_old_path, new_storage_path)
+            self.client.storage.from_(self.bucket_materiales).move(decoded_old_path, new_storage_path)
             return f"{self.base_url}/storage/v1/object/public/{self.bucket_materiales}/{new_storage_path}"
         except Exception as exc:
             raise BusinessRuleError(f"Error al renombrar archivo en Supabase: {str(exc)}")
@@ -160,10 +160,10 @@ class SupabaseStorageClient:
             clean_url = clean_url[: -len("/rest/v1")]
         return clean_url
 
-    def _is_allowed_content_type(self, content_type: str | None) -> bool:
+    def _is_allowed_content_type(self, content_type: str | None, allowed_types: set) -> bool:
         if not content_type:
             return False
-        return content_type in ALLOWED_MATERIAL_CONTENT_TYPES
+        return content_type in allowed_types
 
     def _get_extension_from_filename(self, filename: str) -> str:
         if not filename:
