@@ -278,6 +278,27 @@ class MaterialService:
             f"Material {actualizado.nombre_material} cambio estado de {estado_actual} a {nuevo_estado}",
         )
         return self._map_response(actualizado)
+    
+    def link_material_principal_tipo(self, id_material: int, id_convocatoria:int, tipo_material: TipoMaterialEnum, current_admin_id: int):
+        material_nuevo = self.repository.get_by_id(id_material)
+        material_antiguo = self.repository.get_material_principal(id_convocatoria, tipo_material)
+        
+        if not material_nuevo:
+            raise NotFoundError("Material no encontrado")
+        if material_nuevo.tipo_material != tipo_material:
+            raise BusinessRuleError("El material no es del tipo esperado")
+        if not material_antiguo:
+            raise BusinessRuleError("No existe un material principal de este tipo")
+
+        self.repository.unlink_convocatoria(material_antiguo.id_material, id_convocatoria)
+        self.repository.link_convocatoria(material_nuevo.id_material, id_convocatoria)
+        
+        self._auditar(
+            current_admin_id,
+            TipoAccion.ACTUALIZAR,
+            f"Material {tipo_material.value}: {material_nuevo.nombre_material} ligado a la convocatoria {id_convocatoria}",
+        )
+        return {"success": True}
 
     def link_convocatoria(self, id_material: int, id_convocatoria: int, current_admin_id: int):
         material = self.repository.get_by_id(id_material)
