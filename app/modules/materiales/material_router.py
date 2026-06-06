@@ -160,6 +160,6 @@ def obtener_materiales_principales(tipo_material: TipoMaterialEnum, db: Session 
     return ResponseBase(data=service.get_material_principal_by_tipo(tipo_material), message="Materiales principales obtenidos")
 
 @router.get("/principal/convocatoria/{id_convocatoria}", response_model=ResponseBase[MaterialPrincipalResponse])
-def obtener_material_principal_por_convocatoria(id_convocatoria: int, db: Session = Depends(get_db)):
+def obtener_material_principal_por_convocatoria(id_convocatoria: int, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
     service = MaterialService(db)
     return ResponseBase(data=service.get_material_principal_by_convocatoria(id_convocatoria), message="Material principal obtenido")

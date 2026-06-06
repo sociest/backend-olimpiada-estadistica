@@ -48,7 +48,13 @@ class MaterialRepository:
         return items, total
 
     def get_by_convocatoria(self, id_convocatoria: int):
-        return self.db.query(MaterialModel).join(MaterialConvocatoriaModel).filter(MaterialConvocatoriaModel.id_convocatoria == id_convocatoria).all()
+        return self.db.query(MaterialModel).join(MaterialConvocatoriaModel).filter(
+            MaterialConvocatoriaModel.id_convocatoria == id_convocatoria,
+            MaterialModel.id_material == MaterialConvocatoriaModel.id_material,
+            MaterialModel.tipo_material != TipoMaterialEnum.CONVOCATORIA,
+            MaterialModel.tipo_material != TipoMaterialEnum.AFICHE,
+            MaterialModel.tipo_material != TipoMaterialEnum.REGLAMENTO,
+        ).all()
 
     def get_by_fase(self, id_fase: int):
         return self.db.query(MaterialModel).join(MaterialFaseModel).filter(MaterialFaseModel.id_fase == id_fase).all()
