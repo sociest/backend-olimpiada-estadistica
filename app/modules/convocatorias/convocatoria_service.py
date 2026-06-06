@@ -96,11 +96,11 @@ class ConvocatoriaService:
         return mapped_items, total
 
     def create(self, data: ConvocatoriaCreateDTO, current_admin_id: int):
-        if data.gestion < datetime.now().year:
+        if data.gestion < datetime.now(timezone.utc).year:
             raise BusinessRuleError("La gestión debe ser igual o mayor al año en curso.")
         
         data.nombre_convocatoria = data.nombre_convocatoria.upper()
-        self._validate_fechas_futuras(data.model_dump())
+        self._validate_fechas_futuras(data.model_dump(mode='python'))
         self._validate_fechas_logica(data.inicio_olimpiadas, data.fin_olimpiadas,
                                     data.fecha_inicio_inscripcion, data.fecha_fin_inscripcion)
 
@@ -112,7 +112,7 @@ class ConvocatoriaService:
                     "Las fechas de la olimpiada se solapan con otra convocatoria PUBLICADA."
                 )
 
-        conv_dict = data.model_dump()
+        conv_dict = data.model_dump(mode='python')
         conv_dict["estado"] = EstadoConvocatoria.BORRADOR
         convocatoria = ConvocatoriaModel(**conv_dict)
         creada = self.repository.create(convocatoria)
@@ -134,7 +134,12 @@ class ConvocatoriaService:
         if data.nombre_convocatoria:
             data.nombre_convocatoria = data.nombre_convocatoria.upper()
 
-        updates = data.model_dump(exclude_unset=True)
+        
+        updates = data.model_dump(exclude_unset=True, mode='python')
+        
+        import logging
+        logging.warning(f"TIPO de fecha_fin_inscripcion: {type(updates.get('fecha_fin_inscripcion'))}")
+
         if not updates:
             return self._map_response(convocatoria)
 

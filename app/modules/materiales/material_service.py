@@ -16,7 +16,7 @@ from app.modules.sistema.sistema_model import AuditoriaModel, TipoAccion, TipoMo
 from app.modules.sistema.sistema_repository import SistemaRepository
 
 
-TIPOS_EXTERNOS = {TipoMaterialEnum.DOCUMENTO_EXTERNO, TipoMaterialEnum.PAGINA_EXTERNA, TipoMaterialEnum.VIDEO_EXTERNO, TipoMaterialEnum.ARCHIVO_EXTERNO}
+TIPOS_EXTERNOS = {TipoMaterialEnum.DOCUMENTO_EXTERNO, TipoMaterialEnum.PAGINA_EXTERNA, TipoMaterialEnum.VIDEO_EXTERNO, TipoMaterialEnum.ARCHIVO_EXTERNO, TipoMaterialEnum}
 TIPOS_PRINCIPALES = {TipoMaterialEnum.AFICHE, TipoMaterialEnum.CONVOCATORIA, TipoMaterialEnum.REGLAMENTO}
 
 class MaterialService:
