@@ -9,7 +9,7 @@ from app.core.exceptions import BusinessRuleError, NotFoundError
 from app.core.supabase_storage import SupabaseStorageClient
 from app.modules.materiales.material_model import MaterialModel, EstadoMaterial, EstadoTemporalMaterial, TipoMaterialEnum
 from app.modules.materiales.material_repository import MaterialRepository
-from app.modules.materiales.material_schema import MaterialExternoCreateDTO, MaterialUpdateDTO
+from app.modules.materiales.material_schema import MaterialExternoCreateDTO, MaterialUpdateDTO, LinkMaterialPrincipalResponse, LinkMaterialPrincipalDTO
 from app.modules.convocatorias.convocatoria_repository import ConvocatoriaRepository
 from app.modules.convocatorias.convocatoria_model import EstadoConvocatoria
 from app.modules.sistema.sistema_model import AuditoriaModel, TipoAccion, TipoModulo
@@ -279,26 +279,31 @@ class MaterialService:
         )
         return self._map_response(actualizado)
     
-    def link_material_principal_tipo(self, id_material: int, id_convocatoria:int, tipo_material: TipoMaterialEnum, current_admin_id: int):
-        material_nuevo = self.repository.get_by_id(id_material)
-        material_antiguo = self.repository.get_material_principal(id_convocatoria, tipo_material)
+    def link_material_principal_tipo(self, data: LinkMaterialPrincipalDTO, current_admin_id: int):
+        material_nuevo = self.repository.get_by_id(data.id_material)
+        material_antiguo = self.repository.get_material_principal(data.id_convocatoria, data.tipo_material)
         
         if not material_nuevo:
             raise NotFoundError("Material no encontrado")
-        if material_nuevo.tipo_material != tipo_material:
+        if material_nuevo.tipo_material != data.tipo_material:
             raise BusinessRuleError("El material no es del tipo esperado")
         if not material_antiguo:
             raise BusinessRuleError("No existe un material principal de este tipo")
 
-        self.repository.unlink_convocatoria(material_antiguo.id_material, id_convocatoria)
-        self.repository.link_convocatoria(material_nuevo.id_material, id_convocatoria)
+        self.repository.unlink_convocatoria(material_antiguo.id_material, data.id_convocatoria)
+        self.repository.link_convocatoria(material_nuevo.id_material, data.id_convocatoria)
         
         self._auditar(
             current_admin_id,
             TipoAccion.ACTUALIZAR,
-            f"Material {tipo_material.value}: {material_nuevo.nombre_material} ligado a la convocatoria {id_convocatoria}",
+            f"Material {data.tipo_material.value}: {material_nuevo.nombre_material} ligado a la convocatoria {data.id_convocatoria}",
         )
-        return {"success": True}
+        return LinkMaterialPrincipalResponse(
+            success=True,
+            id_convocatoria=data.id_convocatoria,
+            tipo_material=data.tipo_material.value,
+            material_actual=self._map_response(material_nuevo)
+        )
 
     def link_convocatoria(self, id_material: int, id_convocatoria: int, current_admin_id: int):
         material = self.repository.get_by_id(id_material)

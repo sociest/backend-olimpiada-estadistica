@@ -12,7 +12,9 @@ from app.modules.materiales.material_schema import (
     MaterialUpdateDTO,
     MaterialResponseDTO,
     MaterialDetalleResponseDTO,
-    MaterialPrincipalResponse
+    MaterialPrincipalResponse,
+    LinkMaterialPrincipalDTO,
+    LinkMaterialPrincipalResponse
 )
 from app.modules.materiales.material_service import MaterialService
 
@@ -150,12 +152,12 @@ def desligar_fase(id_material: int, id_fase: int, db: Session = Depends(get_db),
 
 
 @router.delete("/{id_material}", response_model=ResponseBase[dict])
-def eliminar_material(id_material: int, db: Session = Depends(get_db), admin=Depends(get_current_admin)):
+def eliminar_material(id_material: int, db: Session = Depends(get_db), admin: int=Depends(get_current_admin)):
     service = MaterialService(db)
     return ResponseBase(data=service.delete(id_material, admin), message="Material eliminado")
 
 @router.get("/principal/{tipo_material}", response_model=ResponseBase[List[MaterialPrincipalResponse]])
-def obtener_materiales_principales(tipo_material: TipoMaterialEnum, db: Session = Depends(get_db), admin=Depends(get_current_admin)):
+def obtener_materiales_principales(tipo_material: TipoMaterialEnum, db: Session = Depends(get_db)):
     service = MaterialService(db)
     return ResponseBase(data=service.get_material_principal_by_tipo(tipo_material), message="Materiales principales obtenidos")
 
@@ -164,7 +166,7 @@ def obtener_material_principal_por_convocatoria(id_convocatoria: int, db: Sessio
     service = MaterialService(db)
     return ResponseBase(data=service.get_material_principal_by_convocatoria(id_convocatoria), message="Material principal obtenido")
 
-@router.put("/principal/convocatoria/{id_convocatoria}/tipo/{tipo_material}", response_model=ResponseBase[dict])
-def ligar_material_principal_convocatoria(id_convocatoria: int, tipo_material: TipoMaterialEnum, db: Session = Depends(get_db), admin=Depends(get_current_admin)):
+@router.put("/principal/link", response_model=ResponseBase[LinkMaterialPrincipalResponse])
+def ligar_material_principal_convocatoria(data: LinkMaterialPrincipalDTO , db: Session = Depends(get_db), admin=Depends(get_current_admin)):
     service = MaterialService(db)
-    return ResponseBase(data=service.link_material_principal_tipo(id_convocatoria, tipo_material, admin), message="Material principal enlazado a convocatoria")
+    return ResponseBase(data=service.link_material_principal_tipo(data, admin), message="Material principal enlazado a convocatoria")
