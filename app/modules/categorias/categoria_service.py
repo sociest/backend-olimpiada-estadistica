@@ -149,7 +149,7 @@ class CategoriaService:
                     {
                         "id_categoria": item.id_categoria,
                         "nombre_categoria": item.nombre_categoria,
-                        "curso": item.curso,
+                        "curso": str(item.curso),
                         "nivel": item.nivel
                     }
                 )
