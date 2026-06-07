@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, ConfigDict
-
+from app.core.datetime_utils import UTCDateTimeOutput
 from app.modules.sistema.sistema_model import TipoAccion, TipoModulo, TipoActividad
 
 
@@ -19,7 +19,7 @@ class AuditoriaResponseDTO(BaseModel):
     accion: str 
     descripcion: Optional[str]
     modulo: TipoModulo
-    fecha: datetime
+    fecha: UTCDateTimeOutput
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -43,7 +43,7 @@ class ActividadSistemaResponseDTO(BaseModel):
     tipo: TipoActividad
     titulo: str
     descripcion: Optional[str]
-    fecha: datetime
+    fecha: UTCDateTimeOutput
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -67,7 +67,7 @@ class AdminDashboardResponseDTO(BaseModel):
 class ActividadRecienteDTO(BaseModel):
     id_registro: int
     tipo_registro: str
-    fecha: datetime
+    fecha: UTCDateTimeOutput
     descripcion: Optional[str] = None
     accion: Optional[str] = None
     modulo: Optional[str] = None
@@ -80,5 +80,5 @@ class EventoProximoDTO(BaseModel):
     tipo: str
     titulo: str
     descripcion: str | None = None
-    fecha: datetime
+    fecha: UTCDateTimeOutput
     referencia_id: int

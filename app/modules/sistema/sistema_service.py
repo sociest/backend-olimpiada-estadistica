@@ -1,6 +1,6 @@
 import csv
 import io
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List
 from sqlalchemy.orm import Session
 
@@ -29,7 +29,14 @@ class SistemaService:
             "modulo": audit.modulo,
             "fecha": audit.fecha
         }
-
+        
+    def _ensure_utc(self, dt: datetime) -> datetime:
+        if dt is None:
+            return None
+        if dt.tzinfo is None:
+            return dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(timezone.utc) 
+    
     def get_auditorias(self, skip: int, limit: int, fecha_start, fecha_end, modulo, accion, busqueda):
         items, total = self.repository.get_auditorias(skip, limit, fecha_start, fecha_end, modulo, accion, busqueda)
         mapped_items = [self._map_auditoria(audit, admin) for audit, admin in items]
@@ -135,7 +142,7 @@ class SistemaService:
         limit: int = 10
     ):
 
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         eventos = []
 
         conv_repo = ConvocatoriaRepository(self.db)
@@ -154,7 +161,7 @@ class SistemaService:
                     "tipo": "INSCRIPCION",
                     "titulo": "Inicio de inscripciones",
                     "descripcion": convocatoria.nombre_convocatoria,
-                    "fecha": convocatoria.fecha_inicio_inscripcion,
+                    "fecha": self._ensure_utc(convocatoria.fecha_inicio_inscripcion),
                     "referencia_id": convocatoria.id_convocatoria
                 })
 
@@ -166,7 +173,7 @@ class SistemaService:
                     "tipo": "INSCRIPCION",
                     "titulo": "Cierre de inscripciones",
                     "descripcion": convocatoria.nombre_convocatoria,
-                    "fecha": convocatoria.fecha_fin_inscripcion,
+                    "fecha": self._ensure_utc(convocatoria.fecha_fin_inscripcion),
                     "referencia_id": convocatoria.id_convocatoria
                 })
 
@@ -178,10 +185,11 @@ class SistemaService:
                     "tipo": "CONVOCATORIA",
                     "titulo": "Inicio de Olimpiadas",
                     "descripcion": convocatoria.nombre_convocatoria,
-                    "fecha": datetime.combine(
+                    "fecha": self._ensure_utc(datetime.combine(
                         convocatoria.inicio_olimpiadas,
-                        datetime.min.time()
-                    ),
+                        datetime.min.time(),
+                        tzinfo=timezone.utc
+                    )),
                     "referencia_id": convocatoria.id_convocatoria
                 })
 
@@ -193,10 +201,11 @@ class SistemaService:
                     "tipo": "CONVOCATORIA",
                     "titulo": "Fin de Olimpiadas",
                     "descripcion": convocatoria.nombre_convocatoria,
-                    "fecha": datetime.combine(
+                    "fecha": self._ensure_utc(datetime.combine(
                         convocatoria.fin_olimpiadas,
-                        datetime.min.time()
-                    ),
+                        datetime.min.time(),
+                        tzinfo=timezone.utc
+                    )),
                     "referencia_id": convocatoria.id_convocatoria
                 })
 
@@ -209,7 +218,7 @@ class SistemaService:
                     "tipo": "PREPARACION",
                     "titulo": f"Inicio {fase.fase_base.nombre_fase}",
                     "descripcion": "Fase de preparación",
-                    "fecha": fase.fecha_inicio,
+                    "fecha": self._ensure_utc(fase.fecha_inicio),
                     "referencia_id": fase.id_fase
                 })
 
@@ -218,7 +227,7 @@ class SistemaService:
                     "tipo": "PREPARACION",
                     "titulo": f"Fin {fase.fase_base.nombre_fase}",
                     "descripcion": "Fase de preparación",
-                    "fecha": fase.fecha_fin,
+                    "fecha": self._ensure_utc(fase.fecha_fin),
                     "referencia_id": fase.id_fase
                 })
 
@@ -228,7 +237,7 @@ class SistemaService:
                 "tipo": "PRUEBA",
                 "titulo": fase.fase_base.nombre_fase,
                 "descripcion": fase.lugar_realizacion,
-                "fecha": fase.fecha_realizacion,
+                "fecha": self._ensure_utc(fase.fecha_realizacion),
                 "referencia_id": fase.id_fase
             })
 
@@ -239,7 +248,7 @@ class SistemaService:
                 "tipo": "EMAIL",
                 "titulo": campania.nombre,
                 "descripcion": campania.asunto,
-                "fecha": campania.fecha_programada,
+                "fecha": self._ensure_utc(campania.fecha_programada),
                 "referencia_id": campania.id_campania_email
             })
 
