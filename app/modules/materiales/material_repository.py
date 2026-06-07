@@ -142,8 +142,7 @@ class MaterialRepository:
         ).order_by(MaterialModel.fecha_publicacion.desc()).all()
         
     def get_materiales_principales_by_tipo(self, tipo_material: TipoMaterialEnum):
-        return self.db.query(MaterialModel).join(MaterialConvocatoriaModel).filter(
-            MaterialConvocatoriaModel.id_material == MaterialConvocatoriaModel.id_material,
+        return self.db.query(MaterialModel).filter(
             MaterialModel.tipo_material == tipo_material
         )
     

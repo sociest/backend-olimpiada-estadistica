@@ -140,11 +140,12 @@ class MaterialService:
         if tipo_material not in TIPOS_PRINCIPALES:
             raise BusinessRuleError("El tipo de material no es principal")
         convocatoria = self.convocatoria_repo.get_by_id(id_convocatoria)
-        if not convocatoria: raise NotFoundError("Convocatoria no encontrada")
+        if not convocatoria:
+            raise NotFoundError("Convocatoria no encontrada")
 
-        existente = self.repository.get_material_principal(id_convocatoria, tipo_material)
-        if existente:
-            raise BusinessRuleError(f"La convocatoria ya tiene un material de tipo {tipo_material.value}. Reemplácelo o elimínelo primero.")
+        material_anterior = self.repository.get_material_principal(id_convocatoria, tipo_material)
+        if material_anterior:
+            self.repository.unlink_convocatoria(material_anterior.id_material, id_convocatoria)
 
         nombre_upper = nombre_material.upper()
         fecha_creacion = datetime.now(timezone.utc)
@@ -165,11 +166,21 @@ class MaterialService:
         )
         creado = self.repository.create(material)
         self.repository.link_convocatoria(creado.id_material, id_convocatoria)
-        self._auditar(
-            current_admin_id,
-            TipoAccion.CREAR,
-            f"Material principal creado {creado.nombre_material} tipo {creado.tipo_material} para convocatoria {convocatoria.nombre_convocatoria}",
-        )
+
+        if material_anterior:
+            self._auditar(
+                current_admin_id,
+                TipoAccion.ACTUALIZAR,
+                f"Material principal {tipo_material.value} reemplazado: "
+                f"{material_anterior.nombre_material} → {creado.nombre_material} en convocatoria {convocatoria.nombre_convocatoria}"
+            )
+        else:
+            self._auditar(
+                current_admin_id,
+                TipoAccion.CREAR,
+                f"Material principal creado {creado.nombre_material} tipo {creado.tipo_material} para convocatoria {convocatoria.nombre_convocatoria}"
+            )
+
         return self._map_response(creado)
 
     def update(self, material_id: int, data: MaterialUpdateDTO, current_admin_id: int):
