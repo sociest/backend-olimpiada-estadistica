@@ -90,6 +90,7 @@ class MaterialPrincipalResponse(BaseModel):
     id_material: int
     nombre_material: str
     enlace_acceso: str
+    tipo_material: TipoMaterialEnum
 
 class LinkMaterialPrincipalDTO(BaseModel):
     id_material: int

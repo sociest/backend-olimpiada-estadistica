@@ -429,6 +429,7 @@ class MaterialService:
                 "id_material":item.id_material,
                 "nombre_material": item.nombre_material,
                 "enlace_acceso": item.enlace_acceso,
+                "tipo_material": item.tipo_material
             }
             for item in items
         ]
@@ -439,6 +440,7 @@ class MaterialService:
                 {
                     "id_material": material.id_material,
                     "nombre_material": material.nombre_material,
-                    "enlace_acceso": material.enlace_acceso
+                    "enlace_acceso": material.enlace_acceso,
+                    "tipo_material": material.tipo_material
                 } for material in materiales
             ] or []
