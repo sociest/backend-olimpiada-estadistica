@@ -48,7 +48,8 @@ class SupabaseStorageClient:
         if not self._is_allowed_content_type(detected_content_type, allowed_types=ALLOWED_MATERIAL_CONTENT_TYPES):
             raise BusinessRuleError("Tipo de archivo no permitido")
 
-        storage_path = parse.quote(filename)
+        nombre_seguro = self._sanitizar_path(filename)
+        storage_path = parse.quote(nombre_seguro)
 
         try:
             self.client.storage.from_(self.bucket_materiales).upload(
@@ -69,7 +70,7 @@ class SupabaseStorageClient:
         try:
             path_in_bucket = old_url.split(f"{self.bucket_materiales}/")[-1]
             decoded_old_path = parse.unquote(path_in_bucket)
-            new_storage_path = parse.quote(new_filename)
+            new_storage_path = parse.quote(self._sanitizar_path(new_filename))
             self.client.storage.from_(self.bucket_materiales).move(decoded_old_path, new_storage_path)
             return f"{self.base_url}/storage/v1/object/public/{self.bucket_materiales}/{new_storage_path}"
         except Exception as exc:
@@ -131,7 +132,7 @@ class SupabaseStorageClient:
     def rename_profile(self, old_url: str, new_filename: str) -> str:
         try:
             path_in_bucket = old_url.split(f"{self.bucket_perfiles}/")[-1]
-            new_storage_path = new_filename
+            new_storage_path = self._sanitizar_path(new_filename)
             self.client.storage.from_(self.bucket_perfiles).move(path_in_bucket, new_storage_path)
             return f"{self.base_url}/storage/v1/object/public/{self.bucket_perfiles}/{new_storage_path}"
         except Exception as exc:
@@ -181,3 +182,18 @@ class SupabaseStorageClient:
             "image/gif": ".gif"
         }
         return mime_to_ext.get(content_type.lower(), "")
+
+    def _sanitizar_path(self, path: str) -> str:
+        import unicodedata, re
+
+        segmentos = path.split("/")
+        segmentos_limpios = []
+
+        for segmento in segmentos:
+            segmento = unicodedata.normalize("NFKD", segmento).encode("ascii", "ignore").decode("ascii")
+            segmento = re.sub(r"[^a-zA-Z0-9_.\s-]", "_", segmento)
+            segmento = re.sub(r"\s+", "_", segmento)
+            segmento = re.sub(r"_{2,}", "_", segmento)
+            segmento = segmento.strip("_")
+            segmentos_limpios.append(segmento)
+        return "/".join(segmentos_limpios)
