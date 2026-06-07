@@ -298,10 +298,8 @@ class MaterialService:
             raise NotFoundError("Material no encontrado")
         if material_nuevo.tipo_material != data.tipo_material:
             raise BusinessRuleError("El material no es del tipo esperado")
-        if not material_antiguo:
-            raise BusinessRuleError("No existe un material principal de este tipo")
-
-        self.repository.unlink_convocatoria(material_antiguo.id_material, data.id_convocatoria)
+        if material_antiguo:
+            self.repository.unlink_convocatoria(material_antiguo.id_material, data.id_convocatoria)
         self.repository.link_convocatoria(material_nuevo.id_material, data.id_convocatoria)
         
         self._auditar(
