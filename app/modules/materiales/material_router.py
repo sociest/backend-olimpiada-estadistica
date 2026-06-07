@@ -164,7 +164,7 @@ def obtener_material_principal_por_convocatoria(id_convocatoria: int, db: Sessio
     service = MaterialService(db)
     return ResponseBase(data=service.get_material_principal_by_convocatoria(id_convocatoria), message="Material principal obtenido")
 
-@router.put("/principal/convocatoria", response_model=ResponseBase[dict])
+@router.put("/principal/convocatoria/{id_convocatoria}/tipo/{tipo_material}", response_model=ResponseBase[dict])
 def ligar_material_principal_convocatoria(id_convocatoria: int, tipo_material: TipoMaterialEnum, db: Session = Depends(get_db), admin=Depends(get_current_admin)):
     service = MaterialService(db)
     return ResponseBase(data=service.link_material_principal_tipo(id_convocatoria, tipo_material, admin), message="Material principal enlazado a convocatoria")
