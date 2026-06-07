@@ -87,6 +87,7 @@ class FasePruebaPublicaDTO(FasePublicaBaseDTO):
     fecha_realizacion: datetime
     lugar_realizacion: Optional[str] = None
     criterio_aprobacion: int
+    es_prueba_final: Optional[bool] = None
 
 class FasePreparacionPublicaDTO(FasePublicaBaseDTO):
     tipo_fase: Literal["PREPARACION"]
