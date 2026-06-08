@@ -11,6 +11,7 @@ from app.modules.categorias.categoria_model import CategoriaModel
 from app.modules.convocatorias.convocatoria_model import ConvocatoriaModel
 from app.modules.fases.fase_model import FaseModel
 from app.modules.personas.persona_model import PersonaModel
+
 class ResultadoRepository:
     def __init__(self, db: Session):
         self.db = db
@@ -27,6 +28,7 @@ class ResultadoRepository:
             )
             .first()
         )
+
     def get_by_inscripcion_y_fase(self, id_inscripcion: int, id_fase_prueba: int):
         return (
             self.db.query(ResultadoModel)
@@ -54,6 +56,7 @@ class ResultadoRepository:
             self.db.query(ResultadoModel)
             .join(InscripcionModel, ResultadoModel.id_inscripcion == InscripcionModel.id_inscripcion)
             .join(EstudianteModel, InscripcionModel.id_estudiante == EstudianteModel.id_estudiante)
+            .join(PersonaModel, EstudianteModel.id_estudiante == PersonaModel.id_persona)
             .join(FasePruebaModel, ResultadoModel.id_fase_prueba == FasePruebaModel.id_fase)
             .filter(ResultadoModel.id_fase_prueba == id_fase_prueba)
         )
@@ -63,9 +66,9 @@ class ResultadoRepository:
             query = query.filter(
                 or_(
                     EstudianteModel.carnet_identidad.ilike(search_filter),
-                    EstudianteModel.nombres.ilike(search_filter),
-                    EstudianteModel.paterno.ilike(search_filter),
-                    EstudianteModel.materno.ilike(search_filter)
+                    PersonaModel.nombres.ilike(search_filter),
+                    PersonaModel.paterno.ilike(search_filter),
+                    PersonaModel.materno.ilike(search_filter)
                 )
             )
 
@@ -79,7 +82,7 @@ class ResultadoRepository:
             query = query.order_by(order_func(ResultadoModel.nota))
         elif sort_by == "apellido":
             order_func = asc if sort_order == "asc" else desc
-            query = query.order_by(order_func(EstudianteModel.paterno), order_func(EstudianteModel.materno))
+            query = query.order_by(order_func(PersonaModel.paterno), order_func(PersonaModel.materno))
 
         total = query.count()
         items = query.offset(skip).limit(limit).all()
@@ -96,13 +99,14 @@ class ResultadoRepository:
                 ResultadoModel.id_inscripcion,
                 EstudianteModel.id_estudiante,
                 EstudianteModel.carnet_identidad,
-                EstudianteModel.nombres,
-                EstudianteModel.paterno,
-                EstudianteModel.materno,
+                PersonaModel.nombres,
+                PersonaModel.paterno,
+                PersonaModel.materno,
                 ResultadoModel.nota
             )
             .join(InscripcionModel, ResultadoModel.id_inscripcion == InscripcionModel.id_inscripcion)
             .join(EstudianteModel, InscripcionModel.id_estudiante == EstudianteModel.id_estudiante)
+            .join(PersonaModel, EstudianteModel.id_estudiante == PersonaModel.id_persona)
             .join(FasePruebaModel, ResultadoModel.id_fase_prueba == FasePruebaModel.id_fase)
             .filter(ResultadoModel.id_fase_prueba == id_fase_prueba)
             .filter(ResultadoModel.nota >= FasePruebaModel.criterio_aprobacion)
@@ -111,11 +115,11 @@ class ResultadoRepository:
         order_func = asc if sort_order == "asc" else desc
 
         if sort_by == "nombre":
-            query = query.order_by(order_func(EstudianteModel.nombres))
+            query = query.order_by(order_func(PersonaModel.nombres))
         elif sort_by == "paterno":
-            query = query.order_by(order_func(EstudianteModel.paterno))
+            query = query.order_by(order_func(PersonaModel.paterno))
         elif sort_by == "materno":
-            query = query.order_by(order_func(EstudianteModel.materno))
+            query = query.order_by(order_func(PersonaModel.materno))
         elif sort_by == "ci":
             query = query.order_by(order_func(EstudianteModel.carnet_identidad))
         elif sort_by == "resultado":
@@ -144,7 +148,7 @@ class ResultadoRepository:
     def delete(self, resultado: ResultadoModel):
         self.db.delete(resultado)
         self.db.commit()
-        
+
     def get_fase_context_for_export(self, id_fase_prueba: int):
         return (
             self.db.query(FasePruebaModel, FaseModel, CategoriaModel, ConvocatoriaModel)
@@ -159,13 +163,14 @@ class ResultadoRepository:
         query = (
             self.db.query(
                 EstudianteModel.carnet_identidad,
-                EstudianteModel.nombres,
-                EstudianteModel.paterno,
-                EstudianteModel.materno,
+                PersonaModel.nombres,
+                PersonaModel.paterno,
+                PersonaModel.materno,
                 ResultadoModel.nota.label("resultado")
             )
             .join(InscripcionModel, ResultadoModel.id_inscripcion == InscripcionModel.id_inscripcion)
             .join(EstudianteModel, InscripcionModel.id_estudiante == EstudianteModel.id_estudiante)
+            .join(PersonaModel, EstudianteModel.id_estudiante == PersonaModel.id_persona)
             .join(FasePruebaModel, ResultadoModel.id_fase_prueba == FasePruebaModel.id_fase)
             .filter(ResultadoModel.id_fase_prueba == id_fase_prueba)
         )
@@ -175,7 +180,7 @@ class ResultadoRepository:
         elif estado_aprobacion == "REPROBADO":
             query = query.filter(ResultadoModel.nota < FasePruebaModel.criterio_aprobacion)
 
-        query = query.order_by(EstudianteModel.paterno.asc(), EstudianteModel.materno.asc(), EstudianteModel.nombres.asc())
+        query = query.order_by(PersonaModel.paterno.asc(), PersonaModel.materno.asc(), PersonaModel.nombres.asc())
         return query.all()
 
     def get_contexto_importacion(self, id_fase_prueba: int):
@@ -185,10 +190,10 @@ class ResultadoRepository:
             .filter(FasePruebaModel.id_fase == id_fase_prueba)
             .first()
         )
-        
+
         if not fase_info:
             return None, None, None
-            
+
         fase_prueba, fase_base = fase_info
         id_categoria = fase_base.id_categoria_fk
 
@@ -208,7 +213,7 @@ class ResultadoRepository:
         dict_resultados_existentes = {res.id_inscripcion: res.nota for res in resultados_raw}
 
         return id_categoria, dict_inscripciones, dict_resultados_existentes
-    
+
     def get_public_resultados_finales(
         self,
         skip: int,
@@ -237,7 +242,7 @@ class ResultadoRepository:
 
         if id_categoria:
             query = query.filter(CategoriaModel.id_categoria == id_categoria)
-        
+
         if id_convocatoria:
             query = query.filter(CategoriaModel.id_convocatoria == id_convocatoria)
 
