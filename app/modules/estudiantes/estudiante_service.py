@@ -20,6 +20,11 @@ class EstudianteService:
         self.sistema_repository = SistemaRepository(db)
 
     def crear_estudiante(self, data: EstudianteCreateDTO, current_admin_id: int):
+        if not data.id_colegio :
+            raise ValueError("El ID del colegio es requerido")
+        if data.id_colegio <= 0:
+            raise ValueError("El ID del colegio debe ser un número positivo")
+        
         try:
             persona = PersonaModel(
                 nombres=data.nombres,

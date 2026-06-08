@@ -1,11 +1,11 @@
 from sqlalchemy.orm import Session
-from datetime import datetime
 from app.core.exceptions import BusinessRuleError, NotFoundError
 from app.modules.campanias.campania_model import CampaniaEmail, EstadoCampania, CampaniaDestinatario
 from app.modules.campanias.campania_schema import CampaniaCreateDTO, CampaniaUpdateDTO
 from app.modules.campanias.campania_repository import CampaniaRepository
 from app.modules.sistema.sistema_model import AuditoriaModel, TipoAccion, TipoModulo
 from app.modules.sistema.sistema_repository import SistemaRepository
+from app.modules.estudiantes.estudiante_model import EstudianteModel
 
 class CampaniaService:
     def __init__(self, db: Session):
@@ -130,6 +130,15 @@ class CampaniaService:
             ).delete(synchronize_session=False)
         
         if agregar:
+            # Validar que los IDs de estudiante existan
+            estudiantes_validos = self.db.query(EstudianteModel.id_estudiante).filter(
+                EstudianteModel.id_estudiante.in_(agregar)
+            ).all()
+            ids_validos = {e.id_estudiante for e in estudiantes_validos}
+            ids_invalidos = set(agregar) - ids_validos
+            if ids_invalidos:
+                raise BusinessRuleError(f"Los siguientes estudiantes no existen: {sorted(ids_invalidos)}")
+
             existentes = self.db.query(CampaniaDestinatario.id_estudiante).filter(
                 CampaniaDestinatario.id_campania_email == id_campania,
                 CampaniaDestinatario.id_estudiante.in_(agregar)
