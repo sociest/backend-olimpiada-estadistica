@@ -1,15 +1,20 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 from typing import Optional
 from datetime import datetime
+
+from app.core.config import settings
 from app.core.dependencies import get_current_admin
 from app.db.database import get_db
 from app.modules.email_logs.email_log_schema import EmailLogResponseDTO, EmailLogCompletoResponseDTO
 from app.modules.email_logs.email_log_service import EmailLogService
-from app.modules.email_logs.email_log_model import EstadoEmail, TipoEmail
+from app.modules.email_logs.email_log_model import EmailLog, EstadoEmail, TipoEmail
 from app.core.responses import ResponseBase, PaginatedResponse, PaginationMeta
+from app.services.mailing.utils import verify_brevo_signature
+import logging
 
 router = APIRouter(prefix="/email-logs", tags=["email_logs"])
+logger = logging.getLogger(__name__)
 
 @router.get("/", response_model=PaginatedResponse[EmailLogResponseDTO])
 def listar_logs(
@@ -66,3 +71,35 @@ def reintentar_un_fallido(id: int, db: Session = Depends(get_db), current_admin_
     service = EmailLogService(db)
     log = service.reintentar_fallido(id, current_admin_id)
     return ResponseBase(success=True, message="El correo ha sido encolado para reintento", data=log)
+
+@router.post("/brevo-webhook")
+async def brevo_webhook(request: Request, db: Session = Depends(get_db)):
+    payload_body = await request.body()
+    signature_header = request.headers.get("X-Brevo-Webhook-Signature", "")
+
+    if not verify_brevo_signature(payload_body, signature_header, settings.brevo_webhook_secret):
+        logger.warning("Webhook con firma inválida recibido")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Firma inválida")
+
+    payload = await request.json()
+    for event in payload.get("events", []):
+        message_id = event.get("messageId")
+        event_type = event.get("event")
+        reason = event.get("reason", "")
+
+        log = db.query(EmailLog).filter_by(brevo_message_id=message_id).first()
+        if log:
+            if event_type == "delivered":
+                pass
+            elif event_type in ("hard_bounce", "blocked", "invalid_email", "error", "rejected"):
+                log.estado = EstadoEmail.FALLIDO
+                log.error = reason
+            elif event_type == "soft_bounce":
+                log.estado = EstadoEmail.FALLIDO  # o mantenelo PENDIENTE según tu lógica
+                log.error = reason
+            db.commit()
+            logger.info(f"EmailLog {log.id_email_log} actualizado a {log.estado} por webhook ({event_type})")
+        else:
+            logger.warning(f"No se encontró EmailLog para messageId {message_id}")
+
+    return {"status": "ok"}

@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy import case
 from app.modules.email_logs.email_log_model import EmailLog, EstadoEmail, TipoEmail
@@ -31,20 +31,22 @@ class EmailSenderService:
 
         for log in pendientes:
             log.estado = EstadoEmail.EN_PROCESO
-            log.ultimo_intento = datetime.now()
+            log.ultimo_intento = datetime.now(timezone.utc)
             log.intentos += 1
         self.db.commit()
 
         for log in pendientes:
             try:
                 if log.destinatario:
-                    await self.brevo_client.send_email(
+                    result = await self.brevo_client.send_email(
                         subject=log.asunto,
                         html_content=log.contenido_html,
                         to_email=log.destinatario
                     )
+                    # Guardar el messageId de Brevo
+                    log.brevo_message_id = result.get("messageId")
                 log.estado = EstadoEmail.ENVIADO
-                log.fecha_envio = datetime.now()
+                log.fecha_envio = datetime.now(timezone.utc)
             except Exception as e:
                 log.error = str(e)
                 if log.intentos >= settings.mailing_max_retries:

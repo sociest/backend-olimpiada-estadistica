@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     brevo_sender_email: str = ""
     brevo_reply_to: str = ""
     brevo_enabled: int = 1
+    brevo_webhook_secret: str = ""
     
     mailing_batch_size: int = 15
     mailing_interval_minutes: int = 20

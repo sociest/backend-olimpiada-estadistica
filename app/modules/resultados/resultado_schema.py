@@ -37,7 +37,7 @@ class ResultadoAprobatorioResponseDTO(BaseModel):
     carnet_identidad: str
     nombres: str
     paterno: str
-    materno: str
+    materno: Optional[str] = None
     nota: int
 
 

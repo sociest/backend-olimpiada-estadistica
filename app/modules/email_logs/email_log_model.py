@@ -30,6 +30,7 @@ class EmailLog(Base):
     fecha_creacion = Column(DateTime(timezone=True), nullable=False, default=func.now())
     fecha_envio = Column(DateTime(timezone=True), nullable=True)
     fecha_actualizacion = Column(DateTime(timezone=True), nullable=False, default=func.now(), onupdate=func.now())
+    brevo_message_id = Column(String(255), nullable=True, unique=True)
 
     id_estudiante = Column(Integer, ForeignKey("estudiante.id_estudiante", ondelete="SET NULL"), nullable=True)
     id_contacto = Column(Integer, ForeignKey("contacto.id_contacto", ondelete="SET NULL"), nullable=True)
