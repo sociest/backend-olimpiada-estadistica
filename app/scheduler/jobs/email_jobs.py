@@ -1,7 +1,5 @@
-import asyncio
 import logging
-from datetime import datetime
-from zoneinfo import ZoneInfo
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.db.database import SessionLocal
@@ -13,17 +11,13 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-def get_local_now():
-    tz = ZoneInfo(settings.scheduler_timezone)
-    return datetime.now(tz).replace(tzinfo=None)
-
 def process_scheduled_campaigns():
     logger.debug("Ejecutando Job: Búsqueda de campañas programadas...")
     db: Session = SessionLocal()
     renderer = EmailRenderer()
-    
+
     try:
-        ahora = get_local_now()
+        ahora = datetime.now(timezone.utc)  # ← aware UTC
         campanias = db.query(CampaniaEmail).filter(
             CampaniaEmail.estado == EstadoCampania.PROGRAMADA,
             CampaniaEmail.fecha_programada <= ahora
@@ -36,9 +30,9 @@ def process_scheduled_campaigns():
             logger.info(f"Procesando campaña ID: {camp.id_campania_email} - {camp.nombre}")
             camp.estado = EstadoCampania.EN_PROCESO
             camp.fecha_inicio = ahora
-            
+
             destinatarios = db.query(CampaniaDestinatario).filter_by(id_campania_email=camp.id_campania_email).all()
-            
+
             for dest in destinatarios:
                 estudiante = dest.estudiante
                 if not estudiante or not estudiante.correo:
@@ -52,7 +46,7 @@ def process_scheduled_campaigns():
                     contenido_secundario=camp.contenido_secundario,
                     enlaces=camp.enlaces
                 )
-                
+
                 log = EmailLog(
                     destinatario=estudiante.correo,
                     asunto=camp.asunto,
@@ -63,15 +57,16 @@ def process_scheduled_campaigns():
                     id_campania=camp.id_campania_email
                 )
                 db.add(log)
-            
+
             db.commit()
             logger.info(f"Campaña {camp.id_campania_email} pasada a EN_PROCESO. Logs generados.")
-            
+
     except Exception as e:
         db.rollback()
         logger.error(f"Error procesando campañas: {str(e)}", exc_info=True)
     finally:
         db.close()
+
 
 async def send_pending_emails():
     logger.debug("Ejecutando Job: Envío de correos pendientes...")
@@ -84,23 +79,24 @@ async def send_pending_emails():
     finally:
         db.close()
 
+
 def finalize_campaigns():
     logger.debug("Ejecutando Job: Verificación de campañas finalizadas...")
     db: Session = SessionLocal()
     try:
         en_proceso = db.query(CampaniaEmail).filter(CampaniaEmail.estado == EstadoCampania.EN_PROCESO).all()
-        
+
         for camp in en_proceso:
             pendientes = db.query(EmailLog).filter(
                 EmailLog.id_campania == camp.id_campania_email,
                 EmailLog.estado.in_([EstadoEmail.PENDIENTE, EstadoEmail.EN_PROCESO])
             ).count()
-            
+
             if pendientes == 0:
                 camp.estado = EstadoCampania.FINALIZADA
-                camp.fecha_fin = get_local_now()
+                camp.fecha_fin = datetime.now(timezone.utc)  # ← aware UTC
                 logger.info(f"Campaña ID {camp.id_campania_email} ha sido FINALIZADA exitosamente.")
-        
+
         db.commit()
     except Exception as e:
         db.rollback()
