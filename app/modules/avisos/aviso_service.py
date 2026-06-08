@@ -8,6 +8,7 @@ from app.modules.avisos.aviso_repository import AvisoRepository
 from app.modules.avisos.aviso_schema import AvisoCreateDTO, AvisoUpdateDTO, AvisoEstadoUpdateDTO, AvisoResponseDTO, AvisoPublicoDTO
 from app.modules.sistema.sistema_model import AuditoriaModel, TipoAccion, TipoModulo
 from app.modules.sistema.sistema_repository import SistemaRepository
+from datetime import datetime, timezone
 
 class AvisoService:
     def __init__(self, db: Session):
@@ -133,7 +134,7 @@ class AvisoService:
             return "NO_VISIBLE"
         if (
             aviso.fecha_publicacion
-            and datetime.now() < aviso.fecha_publicacion
+            and datetime.now(timezone.utc) < aviso.fecha_publicacion
         ):
             return "EN_ESPERA"
         return EstadoAviso.PUBLICADO.value
