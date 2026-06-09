@@ -53,7 +53,7 @@ class ResultadoRepository:
         sort_order: Literal["asc", "desc"] = "desc"
     ):
         query = (
-            self.db.query(ResultadoModel)
+            self.db.query(ResultadoModel, EstudianteModel.carnet_identidad, PersonaModel.nombres, PersonaModel.paterno, PersonaModel.materno)
             .join(InscripcionModel, ResultadoModel.id_inscripcion == InscripcionModel.id_inscripcion)
             .join(EstudianteModel, InscripcionModel.id_estudiante == EstudianteModel.id_estudiante)
             .join(PersonaModel, EstudianteModel.id_estudiante == PersonaModel.id_persona)

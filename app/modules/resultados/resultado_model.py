@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import CheckConstraint, Column, DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import CheckConstraint, Column, DateTime, Enum, ForeignKey, Integer, Numeric, Text
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
@@ -17,7 +17,7 @@ class ResultadoModel(Base):
     id_categoria = Column(Integer, ForeignKey("categoria.id_categoria", ondelete="RESTRICT"), nullable=False)
     id_fase_prueba = Column(Integer, ForeignKey("fase_prueba.id_fase", ondelete="RESTRICT"), nullable=False, index=True)
     id_inscripcion = Column(Integer, ForeignKey("inscripcion.id_inscripcion", ondelete="CASCADE"), nullable=False, index=True)
-    nota = Column(Integer, nullable=False)
+    nota = Column(Numeric(5, 2), nullable=False)
     observaciones = Column(Text, nullable=True)
     fecha_creacion = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     fecha_actualizacion = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)

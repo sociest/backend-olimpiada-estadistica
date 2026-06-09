@@ -26,7 +26,7 @@ class ResultadoService:
 
     def get_all(self, id_fase_prueba: int, page: int, limit: int, search: str, estado_aprobacion: str, sort_by: str, sort_order: str):
         skip = (page - 1) * limit
-        return self.repository.get_all_avanzado(
+        items, total = self.repository.get_all_avanzado(
             id_fase_prueba=id_fase_prueba,
             skip=skip,
             limit=limit,
@@ -35,6 +35,22 @@ class ResultadoService:
             sort_by=sort_by,
             sort_order=sort_order
         )
+        mapped_items = []
+        for resultado, ci, nombres, paterno, materno in items:
+            mapped_items.append({
+                "id_resultado": resultado.id_resultado,
+                "id_categoria": resultado.id_categoria,
+                "id_fase_prueba": resultado.id_fase_prueba,
+                "id_inscripcion": resultado.id_inscripcion,
+                "nota": resultado.nota,
+                "observaciones": resultado.observaciones,
+                "estado": resultado.estado,
+                "carnet_identidad": ci,
+                "nombres": nombres,
+                "paterno": paterno,
+                "materno": materno,
+            })
+        return mapped_items, total
 
     def get_aprobados_fase(self, id_fase_prueba: int, sort_by: str, sort_order: str):
         rows = self.repository.get_aprobados_by_fase(id_fase_prueba, sort_by, sort_order)

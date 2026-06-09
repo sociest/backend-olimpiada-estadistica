@@ -1,13 +1,13 @@
 from typing import List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field
-
+from decimal import Decimal
 from app.modules.resultados.resultado_model import EstadoResultado
 
 class ResultadoBaseDTO(BaseModel):
     id_categoria: int
     id_fase_prueba: int
     id_inscripcion: int
-    nota: int = Field(..., ge=0, le=100)
+    nota: Decimal = Field(..., ge=0, le=100)
     observaciones: Optional[str] = None
 
 
@@ -16,7 +16,7 @@ class ResultadoCreateDTO(ResultadoBaseDTO):
 
 
 class ResultadoUpdateDTO(BaseModel):
-    nota: Optional[int] = Field(None, ge=0, le=100)
+    nota: Optional[Decimal] = Field(None, ge=0, le=100)
     observaciones: Optional[str] = None
 
 
@@ -27,7 +27,10 @@ class ResultadoEstadoUpdateDTO(BaseModel):
 class ResultadoResponseDTO(ResultadoBaseDTO):
     id_resultado: int
     estado: EstadoResultado
-
+    carnet_identidad: str
+    nombres: str
+    paterno: str
+    materno: Optional[str]
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -38,7 +41,7 @@ class ResultadoAprobatorioResponseDTO(BaseModel):
     nombres: str
     paterno: str
     materno: Optional[str] = None
-    nota: int
+    nota: Decimal
 
 
 class ResultadoMasivoCreateDTO(BaseModel):
@@ -49,7 +52,7 @@ class ResultadoMasivoCreateDTO(BaseModel):
 
 class ResultadoMasivoUpdateItemDTO(BaseModel):
     id_resultado: int
-    nota: int = Field(..., ge=0, le=100)
+    nota: Decimal = Field(..., ge=0, le=100)
     observaciones: Optional[str] = None
 
 
@@ -60,15 +63,15 @@ class ResultadoMasivoUpdateDTO(BaseModel):
 class ResultadoPublicoGeneralDTO(BaseModel):
     nombres: str
     paterno: str
-    materno: str
+    materno: Optional[str]
     carnet_identidad: str
-    nota: int
+    nota: Decimal
 
     model_config = ConfigDict(from_attributes=True)
 
 class ResultadoPublicoFaseDTO(BaseModel):
     carnet_identidad: str
-    nota: int
+    nota: Decimal
     observaciones: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)

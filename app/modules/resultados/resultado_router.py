@@ -36,8 +36,7 @@ def listar_resultados(
     estado_aprobacion: Optional[Literal["APROBADO", "REPROBADO"]] = None,
     sort_by: Optional[Literal["nota", "apellido"]] = None,
     sort_order: Literal["asc", "desc"] = "desc",
-    db: Session = Depends(get_db),
-    current_admin_id: int = Depends(get_current_admin)
+    db: Session = Depends(get_db)
 ):
     service = ResultadoService(db)
     items, total = service.get_all(id_fase_prueba, page, limit, search, estado_aprobacion, sort_by, sort_order)
