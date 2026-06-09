@@ -1,8 +1,6 @@
 /.ai
 /.ai/*
 /base-datos.sql
-/database
-/database/*
 
 .env
 
