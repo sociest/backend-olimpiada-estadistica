@@ -263,6 +263,6 @@ class ResultadoRepository:
                 ResultadoModel.id_fase_prueba == id_fase,
                 ResultadoModel.estado == EstadoResultado.PUBLICADO
             )
-            .order_by(asc(EstudianteModel.carnet_identidad))
+            .order_by(desc(ResultadoModel.nota))
             .all()
         )
