@@ -42,7 +42,7 @@ class AuditoriaModel(Base):
     __tablename__ = "auditoria"
 
     id_auditoria = Column(Integer, primary_key=True, index=True)
-    id_administrador = Column(Integer, ForeignKey("administrador.id_administrador", ondelete="RESTRICT"), nullable=False, index=True)
+    id_administrador = Column(Integer, ForeignKey("administrador.id_administrador", ondelete="RESTRICT"), nullable=True, index=True)
     accion = Column(Enum(TipoAccion, name="tipo_accion"), nullable=False)
     descripcion = Column(Text, nullable=True)
     modulo = Column(Enum(TipoModulo, name="tipo_modulo"), nullable=True)
