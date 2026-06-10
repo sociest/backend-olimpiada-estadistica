@@ -27,6 +27,7 @@ import logging
 from app.core.config import settings
 from app.scheduler.scheduler import shutdown_scheduler, start_scheduler
 from app.modules.sistema.sistema_router import router as sistema_router
+from app.db.database import Base, engine
 
 logging.basicConfig(
     level=settings.log_level,
@@ -35,11 +36,14 @@ logging.basicConfig(
 logging.getLogger("apscheduler").setLevel(logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    
+    # Initialize the database schema
+    Base.metadata.create_all(bind=engine)
+
     create_initial_admin()
-    
+
     if settings.scheduler_enabled:
         start_scheduler()
         logger.info(
@@ -55,7 +59,6 @@ async def lifespan(app: FastAPI):
         logger.info(
             "\n\n\t\tAPScheduler detenido\n\n"
         )
-        
 
 
 app = FastAPI(
@@ -67,7 +70,8 @@ app.state.limiter = limiter
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.frontend_url]if hasattr(settings, 'frontend_url') else ["*"],
+    allow_origins=[settings.frontend_url]if hasattr(
+        settings, 'frontend_url') else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -97,6 +101,12 @@ app.include_router(email_logs_router, prefix=API_PREFIJO_BASE)
 app.include_router(resultados_router, prefix=API_PREFIJO_BASE)
 app.include_router(sistema_router, prefix=API_PREFIJO_BASE)
 
+
 @app.get(API_PREFIJO_BASE)
 def root():
     return {"status": "ok", "message": "API Operativa"}
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
