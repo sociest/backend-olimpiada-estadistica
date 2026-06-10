@@ -35,6 +35,9 @@ def get_current_admin(
     return admin.id_administrador
 
 async def verify_bot_protection(cf_turnstile_response: str, username_hp: str, client_ip: str | None = None) -> None:
+    if settings.turnstile_bypass:
+        return
+
     if username_hp:
         raise BusinessRuleError("Bot detectado")
 

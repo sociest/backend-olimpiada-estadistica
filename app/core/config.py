@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     supabase_bucket_perfiles: str = ""
     port: int = 8000
     cloudflare_secret_key: str = ""
+    turnstile_bypass: bool = False
     
     brevo_api_key: str = ""
     brevo_base_url: str = "https://api.brevo.com/v3"
