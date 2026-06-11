@@ -11,7 +11,9 @@ from app.modules.materiales.material_model import EstadoMaterial, TipoMaterialEn
 from app.modules.sistema.sistema_model import AuditoriaModel, TipoAccion, TipoModulo
 from app.modules.sistema.sistema_repository import SistemaRepository
 from app.modules.inscripciones.inscripcion_service import InscripcionService
-
+from app.core.config import settings
+from zoneinfo import ZoneInfo
+TZ_LOCAL = ZoneInfo(settings.app_timezone)
 class ConvocatoriaService:
     def __init__(self, db: Session):
         self.repository = ConvocatoriaRepository(db)
@@ -31,7 +33,7 @@ class ConvocatoriaService:
             return EstadoTemporal.BORRADOR
 
         ahora = datetime.now(timezone.utc)
-        ahora_date = ahora.date()
+        ahora_date = ahora.astimezone(TZ_LOCAL).date()
 
         if ahora_date < convocatoria.inicio_olimpiadas:
             return EstadoTemporal.PROXIMA
@@ -56,7 +58,7 @@ class ConvocatoriaService:
 
     def _validate_fechas_futuras(self, updates: dict):
         ahora = datetime.now(timezone.utc)
-        hoy = ahora.date()
+        hoy = ahora.astimezone(TZ_LOCAL).date()
         
         if "inicio_olimpiadas" in updates and updates["inicio_olimpiadas"] and updates["inicio_olimpiadas"] < hoy:
             raise BusinessRuleError("La fecha de inicio de olimpiadas no puede estar en el pasado.")
@@ -96,7 +98,8 @@ class ConvocatoriaService:
         return mapped_items, total
 
     def create(self, data: ConvocatoriaCreateDTO, current_admin_id: int):
-        if data.gestion < datetime.now(timezone.utc).year:
+        anio_actual_local = datetime.now(timezone.utc).astimezone(TZ_LOCAL).year
+        if data.gestion < anio_actual_local:
             raise BusinessRuleError("La gestión debe ser igual o mayor al año en curso.")
         
         data.nombre_convocatoria = data.nombre_convocatoria.upper()
@@ -212,14 +215,15 @@ class ConvocatoriaService:
             raise BusinessRuleError("Una convocatoria CANCELADA no puede cambiar de estado.")
 
         if nuevo_estado == EstadoConvocatoria.PUBLICADA:
+            if convocatoria.monto_inscripcion is None:
+                convocatoria.monto_inscripcion = 0
             if estado_actual not in [EstadoConvocatoria.BORRADOR, EstadoConvocatoria.OCULTA]:
                 raise BusinessRuleError(f"No se puede publicar desde {estado_actual.value}.")
             
             if (convocatoria.inicio_olimpiadas is None or
                 convocatoria.fin_olimpiadas is None or
                 convocatoria.fecha_inicio_inscripcion is None or
-                convocatoria.fecha_fin_inscripcion is None or
-                convocatoria.monto_inscripcion is None):
+                convocatoria.fecha_fin_inscripcion is None):
                 raise BusinessRuleError("Para publicar, todos los campos de fechas y monto deben estar completos.")
             
             if self.repository.check_overlap_fechas_global(

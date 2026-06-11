@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     mailing_enabled: int = 1
     scheduler_enabled: int = 1
     temp_cleanup_dir: str = "tmp"
+    app_timezone: str = "America/La_Paz"
     temp_cleanup_interval_hours: int = 24
     
     first_admin_username: str = ""
