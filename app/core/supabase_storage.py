@@ -8,6 +8,7 @@ from app.core.exceptions import BusinessRuleError
 
 MAX_MATERIAL_FILE_SIZE = 40 * 1024 * 1024
 ALLOWED_MATERIAL_CONTENT_TYPES = {
+    # Documentos Office / PDF
     "application/pdf",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -15,7 +16,25 @@ ALLOWED_MATERIAL_CONTENT_TYPES = {
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     "application/vnd.ms-powerpoint",
     "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    "image/jpeg",
+
+    # --- COMPRIMIDOS: ZIP ---
+    "application/zip",
+    "application/x-zip-compressed",
+
+    # --- COMPRIMIDOS: RAR ---
+    "application/rar",
+    "application/vnd.rar",
+    "application/x-rar-compressed",
+
+    # --- COMPRIMIDOS: 7-Zip (.7z) ---
+    "application/x-7z-compressed",
+
+    # --- COMPRIMIDOS: TAR / GZIP (Muy comunes en Mac/Linux) ---
+    "application/x-tar",
+    "application/gzip",
+    "application/x-gzip",
+
+    # Imágenes
     "image/jpeg",
     "image/png",
     "image/svg+xml"

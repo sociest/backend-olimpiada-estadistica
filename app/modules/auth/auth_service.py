@@ -1,12 +1,30 @@
-from sqlalchemy.orm import Session
 import random
 import time
+from sqlalchemy.orm import Session
 from app.core.config import settings
-from app.core.exceptions import AuthenticationError, BusinessRuleError, ConflictError, NotFoundError, UnauthorizedError, ValidationError
-from app.core.security import create_access_token, hash_password, verify_password
+from app.core.exceptions import (
+    AuthenticationError,
+    BusinessRuleError,
+    ConflictError,
+    NotFoundError,
+    UnauthorizedError,
+    ValidationError,
+)
+
+# AÑADIMOS validate_password_complexity al import existente:
+from app.core.security import (
+    create_access_token,
+    hash_password,
+    verify_password,
+    validate_password_complexity,
+)
 from app.modules.auth.auth_model import AdministradorModel, EstadoAdministrador
 from app.modules.auth.auth_repository import AuthRepository
-from app.modules.auth.auth_schema import AdminCreateDTO, CambiarContrasenaDTO, LoginDTO
+from app.modules.auth.auth_schema import (
+    AdminCreateDTO,
+    CambiarContrasenaDTO,
+    LoginDTO,
+)
 from app.modules.sistema.sistema_model import AuditoriaModel, TipoAccion, TipoModulo
 from app.modules.sistema.sistema_repository import SistemaRepository
 
@@ -18,7 +36,11 @@ class AuthService:
 
     def login(self, data: LoginDTO, client_ip: str | None = None):
         admin = self.repository.get_admin_by_correo(data.correo)
-        if not admin or admin.estado != EstadoAdministrador.ACTIVO or not verify_password(data.contrasena, admin.contrasena):
+        if (
+            not admin
+            or admin.estado != EstadoAdministrador.ACTIVO
+            or not verify_password(data.contrasena, admin.contrasena)
+        ):
             time.sleep(random.uniform(0.8, 1.5))
             self.sistema_repository.create_auditoria(
                 AuditoriaModel(
@@ -39,13 +61,14 @@ class AuthService:
             "usuario": admin,
         }
 
-    def create_admin(self, data: AdminCreateDTO, current_admin_id: int | None = None):
+    def create_admin(
+        self, data: AdminCreateDTO, current_admin_id: int | None = None
+    ):
         has_admins = self.repository.count_admins() > 0
         if has_admins and current_admin_id is None:
             raise UnauthorizedError("No autorizado")
 
-        if len(data.contrasena) < 8:
-            raise ValidationError("La contrasena debe tener al menos 8 caracteres")
+        validate_password_complexity(data.contrasena)
 
         existing_admin = self.repository.get_admin_by_correo(data.correo)
         if existing_admin:
@@ -86,8 +109,7 @@ class AuthService:
         if data.nueva_contrasena != data.repetir_nueva_contrasena:
             raise BusinessRuleError("Las contrasenas nuevas no coinciden")
 
-        if len(data.nueva_contrasena) < 8:
-            raise ValidationError("La contrasena debe tener al menos 8 caracteres")
+        validate_password_complexity(data.nueva_contrasena)
 
         admin.contrasena = hash_password(data.nueva_contrasena)
         self.repository.update_admin(admin)
