@@ -10,9 +10,14 @@ from app.modules.personas.persona_model import PersonaModel
 from app.modules.sistema.sistema_model import AuditoriaModel, TipoAccion, TipoModulo
 from app.modules.sistema.sistema_repository import SistemaRepository
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter, landscape
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
-
+from reportlab.lib.pagesizes import letter, landscape, A4
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Table,
+    TableStyle,
+    Paragraph,
+)
+from reportlab.lib.styles import getSampleStyleSheet
 class EstudianteService:
     def __init__(self, db: Session):
         self.db = db
@@ -133,40 +138,145 @@ class EstudianteService:
 
     def exportar_pdf(self, ids: list[int]) -> bytes:
         estudiantes = self.repository.get_by_ids(ids)
+
         buffer = io.BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=landscape(letter))
+
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=landscape(A4),
+            leftMargin=15,
+            rightMargin=15,
+            topMargin=20,
+            bottomMargin=20
+        )
+
         elements = []
-        
-        data = [["Carnet", "Nombre Completo", "F. Nacimiento", "Edad", "RUDE", "Curso", "Nivel", "Colegio", "Turno", "Municipio"]]
+
+        styles = getSampleStyleSheet()
+        style = styles["BodyText"]
+        style.fontName = "Helvetica"
+        style.fontSize = 7
+        style.leading = 8
+
+        data = [[
+            "Carnet",
+            "Nombre Completo",
+            "F. Nacimiento",
+            "Edad",
+            "RUDE",
+            "Curso",
+            "Nivel",
+            "Colegio",
+            "Turno",
+            "Municipio"
+        ]]
+
         today = date.today()
-        
+
         for est in estudiantes:
-            edad = today.year - est.fecha_nacimiento.year - ((today.month, today.day) < (est.fecha_nacimiento.month, est.fecha_nacimiento.day))
+
+            edad = (
+                today.year
+                - est.fecha_nacimiento.year
+                - (
+                    (today.month, today.day)
+                    < (est.fecha_nacimiento.month, est.fecha_nacimiento.day)
+                )
+            )
+
             nombre_completo = f"{est.nombres} {est.paterno} {est.materno or ''}".strip()
-            nombre_colegio = est.colegio.nombre if est.colegio else str(est.id_colegio)
-            municipio_colegio = est.colegio.municipio if est.colegio else "N/A"
-            turno_colegio = est.colegio.turno if est.colegio else "N/A"
-            rude_val = est.rude if est.rude else ""
-            
+
+            nombre_colegio = (
+                est.colegio.nombre
+                if est.colegio
+                else str(est.id_colegio)
+            )
+
+            municipio = (
+                est.colegio.municipio
+                if est.colegio
+                else "N/A"
+            )
+
+            turno = (
+                est.colegio.turno
+                if est.colegio
+                else "N/A"
+            )
+
+            rude = est.rude or ""
+
             data.append([
-                est.carnet_identidad, nombre_completo, str(est.fecha_nacimiento), str(edad), 
-                rude_val, str(est.curso), est.nivel, nombre_colegio, turno_colegio, municipio_colegio
+                Paragraph(str(est.carnet_identidad), style),
+                Paragraph(nombre_completo, style),
+                Paragraph(str(est.fecha_nacimiento), style),
+                Paragraph(str(edad), style),
+                Paragraph(rude, style),
+                Paragraph(str(est.curso), style),
+                Paragraph(est.nivel, style),
+                Paragraph(nombre_colegio, style),
+                Paragraph(turno, style),
+                Paragraph(municipio, style),
             ])
-            
-        table = Table(data)
+
+        # Ancho disponible
+        page_width, _ = landscape(A4)
+        available_width = (
+            page_width
+            - doc.leftMargin
+            - doc.rightMargin
+        )
+
+        # Peso de cada columna
+        weights = [
+            1.4,  # Carnet
+            2.8,  # Nombre
+            1.5,  # Fecha
+            0.8,  # Edad
+            1.8,  # RUDE
+            1.0,  # Curso
+            1.3,  # Nivel
+            3.2,  # Colegio
+            1.2,  # Turno
+            1.8,  # Municipio
+        ]
+
+        total = sum(weights)
+
+        col_widths = [
+            available_width * w / total
+            for w in weights
+        ]
+
+        table = Table(
+            data,
+            colWidths=col_widths,
+            repeatRows=1
+        )
+
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#4CAF50")),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+
+            ('FONTSIZE', (0, 0), (-1, 0), 8),
+
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 4),
+
             ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('WORDWRAP', (0, 0), (-1, -1), True)
+
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
         ]))
-        
+
         elements.append(table)
         doc.build(elements)
+
         return buffer.getvalue()
 
     def _auditar(self, current_admin_id: int, accion: TipoAccion, descripcion: str):

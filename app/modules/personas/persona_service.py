@@ -258,21 +258,24 @@ class PersonaService:
     def update_colaborador(self, colaborador_id: int, data: ColaboradorUpdateDTO, perfil_file: UploadFile | None = None, current_admin_id: int | None = None):
         colaborador = self.repository.get_colaborador_by_id(colaborador_id)
         if not colaborador:
-            raise BusinessRuleError("Colaborador no encontrado")
-        
+            raise BusinessRuleError("Colaborador no encontrado")        
         if perfil_file:
             if colaborador.perfil:
                 self.storage.delete_file(colaborador.perfil)
             content = perfil_file.file.read()
             colaborador.perfil = self.storage.upload_profile(content, perfil_file.filename, content_type=perfil_file.content_type)
-
         update_data = data.model_dump(exclude_unset=True)
+        CAMPOS_COLABORADOR = {
+            "perfil", "presentacion", "rol", "tipo", "correo"
+        }
+        CAMPOS_PERSONA = {
+            "nombres", "paterno", "materno", "estado"
+        }
         for key, value in update_data.items():
-            if hasattr(colaborador, key):
+            if key in CAMPOS_COLABORADOR:
                 setattr(colaborador, key, value)
-            elif hasattr(colaborador.persona, key):
+            elif key in CAMPOS_PERSONA and colaborador.persona:
                 setattr(colaborador.persona, key, value)
-        
         self.repository.update_colaborador()
         if current_admin_id is not None:
             self._auditar(

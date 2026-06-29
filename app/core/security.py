@@ -3,16 +3,35 @@ import hashlib
 import hmac
 import json
 import secrets
+import re
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from app.core.config import settings
-from app.core.exceptions import UnauthorizedError
+from app.core.exceptions import UnauthorizedError, ValidationError
 
 
 PASSWORD_HASH_ALGORITHM = "pbkdf2_sha256"
 PASSWORD_ITERATIONS = 260000
 
+
+def validate_password_complexity(password: str) -> None:
+    if len(password) < 8:
+        raise ValidationError("La contrasena debe tener al menos 8 caracteres")
+    if not re.search(r"[A-Z]", password):
+        raise ValidationError(
+            "La contrasena debe incluir al menos una letra mayuscula"
+        )
+    if not re.search(r"[a-z]", password):
+        raise ValidationError(
+            "La contrasena debe incluir al menos una letra minuscula"
+        )
+    if not re.search(r"[0-9]", password):
+        raise ValidationError("La contrasena debe incluir al menos un numero")
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>_+\-=\[\]\\\/]', password):
+        raise ValidationError(
+            "La contrasena debe incluir al menos un caracter especial (!@#$...)"
+        )
 
 def hash_password(password: str) -> str:
     bcrypt_context = _get_bcrypt_context()
